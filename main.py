@@ -27,17 +27,11 @@ class Text:
     Attributes:
         content (str): Content of the essay
         nlp_doc (spaCy doc): Doc object which contains tokens from the essay
-        tokens (list): All tokens from the text (without punctuation's marks)
-        tokens_without_stop (list): Tokens without stop words
-        lemmas_without_stop (list): Lemmas without stop words
-        unique_tokens_texts (list): Tokens without token.text duplicates
-        unique_tokens_lemmas (list): Tokens without token.lemma duplicates
-        bigrams (list): 2-grams based on tokens
-        trigrams (list): 3-grams based on tokens
 
     Methods:
-        get_unique_tokens
-        get_unique_lemmas
+        get_tokens
+        get_lemmas
+        get_types
         get_bigrams
         get_trigrams
 
@@ -49,45 +43,65 @@ class Text:
             self.content = file.read().replace('\n', ' ')
 
         self.nlp_doc = nlp(self.content)
-        self.tokens = [token for token in self.nlp_doc if not token.is_punct]
-        self.tokens_without_stop = [token for token in self.tokens if not token.is_stop]
-        self.lemmas_without_stop = [token.lemma_ for token in self.tokens_without_stop]
 
-        self.unique_tokens_texts = list()
-        self.unique_tokens_lemmas = list()
-        self.bigrams = list()
-        self.trigrams = list()
+    def get_tokens(self, punct=False, insignificant=True):
+        """
+        Returns a list of tokens with or without punctuation marks and insignificant for lexical measures words.
+        Insignificant words are stopwords or words with one of these part of speech: proper noun, symbol, particle,
+        coordinating conjunction, adposition or unknown part of speech
+        """
+        if punct:
+            tokens = [token for token in self.nlp_doc]
+        else:
+            tokens = [token for token in self.nlp_doc if not token.is_punct]
 
-    def get_unique_tokens(self):
-        """Returns a list of unique token.text_."""
+        banned_pos = ['PROPN', 'SYM', 'PART', 'CCONJ', 'ADP', 'X']
+        if not insignificant:
+            tokens = [token for token in tokens if (not token.is_stop) and (token.pos_ not in banned_pos)]
+
+        return tokens
+
+    def get_lemmas(self, insignificant=True):
+        """Returns a list of lemmas with or without insignificant for lexical measures words (see get_tokens)"""
+        if insignificant:
+            return [token.lemma_ for token in self.get_tokens(False, True)]
+        else:
+            return [token.lemma_ for token in self.get_tokens(False, False)]
+
+    def get_types(self, insignificant=True):
+        """
+        Returns a list of types with or without insignificant for lexical measures words (see get_tokens)
+        """
+        types = list()
         unique_tokens_text = list()
-        for token in self.tokens:
-            if token.text not in unique_tokens_text:
-                self.unique_tokens_texts.append(token)
-                unique_tokens_text.append(token.text)
-        return self.unique_tokens_texts
-
-    def get_unique_lemmas(self):
-        """Returns a list of unique token.lemma_"""
-        unique_tokens_lemmas = list()
-        for token in self.tokens:
-            if token.lemma_ not in unique_tokens_lemmas:
-                self.unique_tokens_lemmas.append(token)
-                unique_tokens_lemmas.append(token.lemma_)
-        return self.unique_tokens_lemmas
+        if insignificant:
+            for token in self.get_tokens():
+                if token.text not in unique_tokens_text:
+                    types.append(token)
+                    unique_tokens_text.append(token.text)
+            return types
+        else:
+            unique_tokens_text = list()
+            for token in self.get_tokens(insignificant=False):
+                if token.text not in unique_tokens_text:
+                    types.append(token)
+                    unique_tokens_text.append(token.text)
+            return types
 
     def get_bigrams(self):
-        """Returns a list of bigrams"""
-        for i in range(len(self.tokens) - 2):
-            self.bigrams.append(f'{self.tokens[i]}__{self.tokens[i + 1]}'.lower())
-            self.bigrams.append(f'{self.tokens[i]}__{self.tokens[i + 2]}'.lower())
-        return self.bigrams
+        """Returns a list of bigrams. Tokens in bigrams divided by __"""
+        bigrams = list()
+        for i in range(len(self.get_tokens()) - 2):
+            bigrams.append(f'{self.get_tokens()[i]}__{self.get_tokens()[i + 1]}'.lower())
+            bigrams.append(f'{self.get_tokens()[i]}__{self.get_tokens()[i + 2]}'.lower())
+        return bigrams
 
     def get_trigrams(self):
-        """Returns a list of trigrams"""
-        for i in range(len(self.tokens) - 2):
-            self.trigrams.append(f'{self.tokens[i]}__{self.tokens[i + 1]}__{self.tokens[i + 2]}'.lower())
-        return self.trigrams
+        """Returns a list of trigrams. Tokens in trigrams divided by __"""
+        trigrams = list()
+        for i in range(len(self.get_tokens()) - 2):
+            trigrams.append(f'{self.get_tokens()[i]}__{self.get_tokens()[i + 1]}__{self.get_tokens()[i + 2]}'.lower())
+        return trigrams
 
     def __str__(self):
         return text.content
@@ -105,10 +119,8 @@ class LexicalSophisticationMeasurement:
 
     Attributes:
         content (str): Content of the essay
-        nlp_doc (spaCy doc): Doc object which contains tokens from the essay
         tokens (list): All tokens from the text (without punctuation's marks)
-        tokens_without_stop (list): Tokens without stop words
-        lemmas_without_stop (list): Lemmas without stop words
+        significant_tokens (list): Tokens without stop words
         bigrams (list): 2-grams based on tokens
         trigrams (list): 3-grams based on tokens
 
@@ -139,11 +151,9 @@ class LexicalSophisticationMeasurement:
 
     def __init__(self, text_class_variable):
         # Attributes of variable of class Text
-        self.nlp_doc = text_class_variable.nlp_doc
         self.content = text_class_variable.content
-        self.tokens = text_class_variable.tokens
-        self.tokens_without_stop = text_class_variable.tokens_without_stop
-        self.lemmas_without_stop = text_class_variable.lemmas_without_stop
+        self.tokens = text_class_variable.get_tokens()
+        self.significant_tokens = text_class_variable.get_tokens(False, False)
         self.bigrams = text_class_variable.get_bigrams()
         self.trigrams = text_class_variable.get_trigrams()
 
@@ -221,7 +231,7 @@ class LexicalSophisticationMeasurement:
 
         # Create lists of frequencies and ranges for calculating average values further
         word_frequencies, word_ranges = list(), list()
-        for token in self.tokens_without_stop:
+        for token in self.significant_tokens:
             try:
                 word = f'{token.lemma_}_{token.pos_}'.lower()
                 word_freq = self.brown_freq[word]
@@ -351,14 +361,14 @@ class LexicalSophisticationMeasurement:
 
         """
         academic_words = list()
-        for token in self.tokens_without_stop:
+        for token in self.significant_tokens:
             if token.text in self.academic_word_list:
                 self.marked_up_tokens[token]['academic'] = True
                 academic_words.append(token)
 
         statistics_dict = {
             'Amount of academic words': len(academic_words),
-            'Percentage of academic words': len(academic_words) / len(self.tokens_without_stop)
+            'Percentage of academic words': len(academic_words) / len(self.significant_tokens)
         }
 
         return statistics_dict
@@ -389,7 +399,7 @@ class LexicalSophisticationMeasurement:
             'PROPN': None, 'PUNCT': None,
             'SPACE': None, 'SYM': None,
         }
-        for token in self.tokens_without_stop:
+        for token in self.significant_tokens:
             if type(tags_dict[token.pos_]) == str:
                 # Some words may not be in corpus, therefore we will use try/except
                 try:
@@ -663,5 +673,4 @@ class AnalysisOfVocabularyRichness:
 
 
 text = Text('wt2.txt')
-test = LevelAndDescription(text)
-print(test.description)
+print(len(text.get_tokens(True, True)))
