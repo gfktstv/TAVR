@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/IELTS-WT2-EVALUATOR.iml" filepath="$PROJECT_DIR$/.idea/IELTS-WT2-EVALUATOR.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/tavr.iml" filepath="$PROJECT_DIR$/.idea/tavr.iml" />
     </modules>
   </component>
 </project>
