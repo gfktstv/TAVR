@@ -1,4 +1,5 @@
 import spacy
+from spacy.tokens import Doc
 from spacy_ngram import NgramComponent
 
 from nltk.corpus import wordnet as wn
@@ -138,13 +139,27 @@ class LexicalSophisticationMeasurement:
 
     """
 
-    def __init__(self, text_class_variable):
-        # Attributes of variable of class Text
-        self.content = text_class_variable.content
-        self.tokens = text_class_variable.get_tokens()
-        self.significant_tokens = text_class_variable.get_tokens(False, False)
-        self.bigrams = text_class_variable.get_bigrams()
-        self.trigrams = text_class_variable.get_trigrams()
+    def __init__(self, text_class_variable=None, token_list=None, pos_tag=None):
+        """
+        The input can be both Text's instance or a list of tokens. The last one is used for replacement options,
+        and it takes as input list with tokens and their part of speech tag (because they are synonyms they have
+        similar pos tags)
+        """
+        if text_class_variable is not None:
+            assert isinstance(text_class_variable, Text)
+            self.content = text_class_variable.content
+            self.tokens = text_class_variable.get_tokens()
+            self.significant_tokens = text_class_variable.get_tokens(False, False)
+            self.bigrams = text_class_variable.get_bigrams()
+            self.trigrams = text_class_variable.get_trigrams()
+        # For replacement options
+        elif token_list is not None:
+            assert isinstance(token_list, list)
+            doc = Doc(nlp.vocab, words=token_list, pos=[pos_tag for i in range(len(token_list))], lemmas=token_list)
+            banned_pos = ['PROPN', 'SYM', 'PART', 'CCONJ', 'ADP', 'X']
+            self.tokens = [token for token in doc if (not token.is_punct)]
+            self.significant_tokens = [token for token in doc if (not token.is_stop)
+                                       and (token.pos_ not in banned_pos) and (not token.is_punct)]
 
         # Dictionary consisting of token and token_dict.
         # Token dict is a dictionary with frequency, range, academic and level keys
@@ -152,7 +167,7 @@ class LexicalSophisticationMeasurement:
         for token in self.tokens:
             if not token.is_stop:
                 self.marked_up_tokens[token] = {
-                    'stopword': False, 'freq': None, 'range': None,
+                    'stopword': False, 'freq': 0, 'range': 0,
                     'academic': bool(), 'level': None
                 }
             if token.is_stop:
@@ -163,7 +178,7 @@ class LexicalSophisticationMeasurement:
         # Dictionary includes academic formulas marked with frequency and occurrences in a text as well
         self.marked_up_n_grams = dict()
 
-    def word_freq_range(self):
+    def word_freq_range(self, for_replacement_options=False):
         """
         Add frequency and range of a token to self.marked_up_tokens.
         Calculates average word frequency & range.
@@ -191,12 +206,13 @@ class LexicalSophisticationMeasurement:
                 # Ignores KeyError that occurs due to the absence of a token in the corpus
                 continue
 
-        measurements_dict = {
-            'Word frequency average': mean(word_frequencies),
-            'Word range average': mean(word_ranges)
-        }
+        if not for_replacement_options:
+            measurements_dict = {
+                'Word frequency average': mean(word_frequencies),
+                'Word range average': mean(word_ranges)
+            }
 
-        return measurements_dict
+            return measurements_dict
 
     def n_gram_freq_range(self):
         """
@@ -211,11 +227,15 @@ class LexicalSophisticationMeasurement:
 
         """
         # Create n-grams frequency and range dictionary
-        brown_bigram_freq = ct.frequency(ct.tokenize(ct.ldcorpus('brown', verbose=False), lemma=False, ngram=2))
-        brown_bigram_range = ct.frequency(
-            ct.tokenize(ct.ldcorpus('corpora/brown', verbose=False), lemma=False, ngram=2), calc='range'
+        brown_bigram_freq = ct.frequency(ct.tokenize(ct.ldcorpus(
+            'corpora/brown', verbose=False), lemma=False, ngram=2)
         )
-        brown_trigram_freq = ct.frequency(ct.tokenize(ct.ldcorpus('brown', verbose=False), lemma=False, ngram=3))
+        brown_bigram_range = ct.frequency(ct.tokenize(ct.ldcorpus(
+            'corpora/brown', verbose=False), lemma=False, ngram=2), calc='range'
+        )
+        brown_trigram_freq = ct.frequency(ct.tokenize(ct.ldcorpus(
+            'corpora/brown', verbose=False), lemma=False, ngram=3)
+        )
         brown_trigram_range = ct.frequency(ct.tokenize(ct.ldcorpus(
             'corpora/brown', verbose=False), lemma=False, ngram=3), calc='range'
         )
@@ -321,7 +341,7 @@ class LexicalSophisticationMeasurement:
 
         return statistics_dict
 
-    def vocabulary_by_level(self):
+    def vocabulary_by_level(self, for_replacement_options=False):
         """
         Calculates amount of tokens for each CEFR level using 'words by level' dir and
         percentage of words for each category (further visualized by a pie plot).
@@ -404,11 +424,12 @@ class LexicalSophisticationMeasurement:
             for i in range(vocabulary_by_level_dict[f'{level} words']):
                 vocabulary_metric.append(i * level_weight[level])
 
-        vocabulary_metric_dict = {
-            'Vocabulary': np.average(vocabulary_metric)
-        }
+        if not for_replacement_options:
+            vocabulary_metric_dict = {
+                'Vocabulary': np.average(vocabulary_metric)
+            }
 
-        return vocabulary_metric_dict
+            return vocabulary_metric_dict
 
     def get_full_data(self):
         """
@@ -485,18 +506,79 @@ class TextMarkup:
 
 class TokenReplacementOptions:
     """
-    Selects synonyms with low frequency and range, synonyms from Academic Word List, with higher CEFR level
-    to a given token.
+    Selects synonyms with lower frequency or lower range or higher CEFR level to a given token.
+    It should be mentioned that suggested synonyms might be inappropriate in a text because of different semantics
+    that does not count.
+
+    Attributes:
+        marked_up_tokens(dict of dicts): tokens from a text marked up with level, frequency and range
 
     Methods:
-    get_replacement_options
+        spacy_pos_to_wordnet_pos: Transforms spaCy part of speech tag to wordnet pos tag
+        get_synonyms: Returns synonyms of a token based on part of speech marked with level, frequency and range
+        get_replacement_options: Returns replacement options based on vocabulary level, frequency and range
     """
+    def __init__(self, marked_up_tokens):
+        # Assigns dictionary of tokens from a text marked up with level, frequency and range
+        self.marked_up_tokens = marked_up_tokens
 
-    def __init__(self):
-        pass
+    @staticmethod
+    def spacy_pos_to_wordnet_pos(spacy_pos):
+        """Transforms spaCy part of speech tag to wordnet pos tag"""
+        if spacy_pos.startswith('N'):
+            return wn.NOUN
+        elif spacy_pos.startswith('V'):
+            return wn.VERB
+        elif spacy_pos.startswith('J'):
+            return wn.ADJ
+        elif spacy_pos.startswith('R'):
+            return wn.ADV
+        else:
+            return None
 
-    def get_replacement_options(self):
-        pass
+    def get_synonyms(self, token):
+        """Returns synonyms of a token based on part of speech"""
+        pos_tag = self.spacy_pos_to_wordnet_pos(token.pos_)
+        synonyms = list()
+        for synset in wn.synsets(token.text, pos=pos_tag):
+            # synonym = synset.lemmas()[0].name()
+            # if synonym not in synonyms:
+            #     synonyms.append(synonym)
+            for synonym in synset.lemmas():
+                if synonym.name() not in synonyms:
+                    synonyms.append(synonym.name())
+        return synonyms
+
+    def get_replacement_options(self, token):
+        """
+        Returns replacement options based on synonyms of a token excluding synonyms with lower CEFR level,
+        higher frequency & range and ones which are not in EFLLex corpus.
+        """
+        # Assigns instance of LexicalSophisticationMeasurements for synonyms
+        lexical_sophistication = LexicalSophisticationMeasurement(token_list=self.get_synonyms(token),
+                                                                  pos_tag=token.pos_)
+        # Marks up synonymic tokens with frequency and range
+        lexical_sophistication.word_freq_range(for_replacement_options=True)
+        # Marks up synonymic tokens with level
+        lexical_sophistication.vocabulary_by_level(for_replacement_options=True)
+        marked_up_synonyms = lexical_sophistication.marked_up_tokens
+
+        # For now, we only imagine that we have token level, frequency and range
+        token_level = 'B1'  # self.marked_up_tokens[token]['level']
+        token_freq = 65  # self.marked_up_tokens[token]['freq']
+        token_range = 52  # self.marked_up_tokens[token]['range']
+        # Excludes synonyms which are not in EFLLex corpus
+        synonyms = {key: value for key, value in marked_up_synonyms.items() if value['level'] != 'C2'}
+        # Leaves only synonyms with higher CEFR level or lower frequency or lower range and excludes freq/range equal 0
+        levels = ['A1', 'A2', 'B1', 'B2', 'C1']
+        synonyms = {key: value for key, value in synonyms.items()
+                    if (value['freq'] < token_freq) or (value['range'] < token_range)
+                    or (levels.index(value['level']) > levels.index(token_level))
+                    and ((value['freq'] != 0) and (value['range'] != 0))}
+        # Sorts synonyms by level
+        synonyms_sorted_by_level = sorted(synonyms.items(), key=lambda x: x[1]['level'], reverse=True)
+        replacements = [synonym_set[0] for synonym_set in synonyms_sorted_by_level]
+        return replacements[0:2]
 
 
 class AnalysisOfVocabularyRichness:
@@ -508,3 +590,6 @@ class AnalysisOfVocabularyRichness:
         pass
 
 
+# Test TokenReplacementOptions
+token_test = nlp('expand')[0]
+print(TokenReplacementOptions('test').get_replacement_options(token_test))
