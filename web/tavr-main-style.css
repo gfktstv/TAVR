@@ -1,0 +1,124 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+.container {
+    max-width: 1200px;
+
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #F9F9F9;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+h1 {
+    color: #1400FF;
+    text-align: center;
+    font-family: Arial, Helvetica, sans-serif;
+}
+textarea {
+    width: 98%;
+    min-height: 585px;
+    resize: none;
+
+    padding: 10px;
+    border: 3px solid white;
+    border-radius: 10px;
+    margin-bottom: 10px;
+
+    word-wrap: break-word;
+
+    font-family: sans-serif;
+    font-size: 20px;
+
+    &:focus{
+        border: 3px solid white;
+        outline: none;
+      }
+}
+.buttons {
+    display:flex;
+    justify-content:flex-start;
+    flex-direction: row;
+}
+#characterCount {
+    display: flex;
+    margin-left: auto;
+
+    border: 3px solid #F9F9F9;
+    padding: 10px;
+    border-radius: 5px;
+
+    font-size: 16px;
+    font-weight: bold;
+    color: #ff0000;
+  }
+#buttonAssess {
+    width: 250px;
+    
+
+    color: white;
+    font-family: sans-serif;
+    font-size: 16px;
+
+    background-color: #1400FF;
+    border: 3px solid #F9F9F9;
+    padding: 10px;
+    border-radius: 5px;
+
+    cursor: pointer;
+
+    &:hover{
+        background-color: white;
+        color: #1400FF;
+        border: 3px solid #1400FF;
+        outline: 3px solid #F9F9F9;
+        transition: 0.15s
+    }
+}
+#buttonClear {
+    align-self: flex-end;
+    width: 250px;
+    
+    color: white;
+    font-family: sans-serif;
+    font-size: 16px;
+
+    background-color: #ff0000;
+    border: 3px solid #F9F9F9;
+    padding: 10px 20px;
+    border-radius: 5px;
+
+    cursor: pointer;
+
+    &:hover{
+        background-color: white;
+        color: #ff0000;
+        border: 3px solid #ff0000;
+        outline: 3px solid #F9F9F9;
+        transition: 0.25s
+    }
+}
+#buttonCopy {
+    width: 250px;
+
+    color: white;
+    font-family: sans-serif;
+    font-size: 16px;
+
+    background-color: #cccccc;
+    border: 3px solid #F9F9F9;
+    padding: 10px;
+    border-radius: 5px;
+    
+    cursor: pointer;
+
+    &:hover{
+        background-color: white;
+        color: #cccccc;
+        border: 3px solid #cccccc;
+        outline: 3px solid #F9F9F9;
+        transition: 0.15s
+    }
+}
