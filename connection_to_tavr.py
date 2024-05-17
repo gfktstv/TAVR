@@ -43,14 +43,14 @@ class Connection:
             tokens_for_json = dict()
             for key, value in tavr.marked_up_tokens.items():
                 tokens_for_json[f'{key.text}'] = value
-            with open('tokens.json', 'w') as f:
+            with open('temporary_files/tokens.json', 'w') as f:
                 json.dump(tokens_for_json, f, indent=2, sort_keys=False)
 
             return jsonify(trigrams_html, stats_html, academic_formulas_html)
 
         @self._app.route('/get_tokens', methods=['GET'])
         def get_tokens():
-            with open('tokens.json', 'r') as f:
+            with open('temporary_files/tokens.json', 'r') as f:
                 tokens = json.load(f)
             return jsonify(tokens, self.tokens_text)
 

@@ -24,10 +24,11 @@ function showAssessment() {
   getMeasurementsFromTAVR(inputEssay);
 }
 
+// Add tables, chart and replace textarea with marked up essay
 async function getMeasurementsFromTAVR(inputEssay) {
   // Change cursor view to show loading
-  document.body.style.cursor = 'wait'
-
+  document.body.style.cursor = 'progress'
+  // Send a data to TAVR and get a response
   const essay = inputEssay.value
   const url = 'http://localhost:5000/get_tables';
   try {
@@ -43,18 +44,12 @@ async function getMeasurementsFromTAVR(inputEssay) {
       }
       // The response is 3 tables in json format
       const tables = await response.json();
+      // Add chart and tables to the webpage
       addMeasurements(tables['0'], tables['1'], tables['2']);
       // The response is tokens in json format and tokens keys in array format (because in json tokens are sorted and idk why)
-      var tokens = await getTokens();
-      var markedTextArray = markUpText(tokens);
-      const inputMarkedEssay = document.getElementById('inputMarkedEssay');
-      inputMarkedEssay.id = 'markedEssay';
-      // Add marked up words
-      for (var i = 0; i < markedTextArray.length; i++) {
-        inputMarkedEssay.innerHTML += markedTextArray[i]
-        inputMarkedEssay.innerHTML += ` `
-      }
-      // Delete textarea
+      var tokens_and_keys = await getTokens();
+      // Add marked up essay and remove textarea
+      addMarkedUpEssay(tokens_and_keys)
       inputEssay.remove()
       // Change title
       document.getElementById('title-above-essay').innerHTML = 'the Tool for Analysis of Vocabulary Richness';
@@ -78,11 +73,27 @@ async function getMeasurementsFromTAVR(inputEssay) {
   } catch (error) {
       // Change cursor view to default
       document.body.style.cursor = 'default'
+      // Change textarea disabled param
+      const textArea = document.getElementById('inputEssay');
+      textArea.disabled = false;
       alert('An error occurred, please, try again')
       console.log(error)
   }
 }
 
+// Mark up input essay and add it to the web page
+function addMarkedUpEssay(tokens_and_keys) {
+  var markedTextArray = markUpText(tokens_and_keys);
+  const inputMarkedEssay = document.getElementById('inputMarkedEssay');
+  inputMarkedEssay.id = 'markedEssay';
+  // Add marked up words
+  for (var i = 0; i < markedTextArray.length; i++) {
+    inputMarkedEssay.innerHTML += markedTextArray[i]
+    inputMarkedEssay.innerHTML += ` `
+  }
+}
+
+// Get marked up tokens from TAVR (returns both tokens in json format and array of tokens keys)
 async function getTokens() {
   const url = 'http://localhost:5000/get_tokens';
   try {
@@ -107,7 +118,7 @@ function addMeasurements(tableTrigrams, tableStats, tableAcademicFormulas) {
   const inputContainerAssessment = document.getElementById('inputContainerAssessment');
   inputContainerAssessment.innerHTML += `
     <div class='containerAssessment'>
-    <img class='vocabularyChart', src='vocabulary_chart.png'>
+    <img class='vocabularyChart', src='temporary_files/vocabulary_chart.png'>
     <div id='inputTableTrigrams'></div>
     <div id='inputTableStats'></div>
     <div id='inputTableAcademicFormulas'></div>
@@ -120,9 +131,10 @@ function addMeasurements(tableTrigrams, tableStats, tableAcademicFormulas) {
   const inputTableAcademicFormulas = document.getElementById('inputTableAcademicFormulas');
   inputTableAcademicFormulas.innerHTML = tableAcademicFormulas;
   const inputEssay = document.getElementById('inputEssay')
-  inputEssay.innerHTML = `<img class='vocabularyChart', src='vocabulary_chart.png'>`
+  inputEssay.innerHTML = `<img class='vocabularyChart', src='temporary_files/vocabulary_chart.png'>`
 }
 
+// Create an array with span objects (marked up essay)
 function markUpText(tokens_and_keys) {
   var tokens = tokens_and_keys['0'];
   var keys = tokens_and_keys['1'];
@@ -148,6 +160,7 @@ function markUpText(tokens_and_keys) {
   return markedTextArray
 }
 
+// Get ID for span object from level of vocabulary
 function idFromLevel(level) {
   if (level === 'A1') {
     result = 'level0'
@@ -167,22 +180,10 @@ function idFromLevel(level) {
   return result
 }
 
-function getHTMLFromString(str) {
-  // Create a new DOMParser
-  var parser = new DOMParser();
-
-  // Parse the string as XML
-  var xmlDoc = parser.parseFromString(str, "text/xml");
-
-  // Get the HTML representation of the parsed XML
-  var htmlString = xmlDoc.documentElement.innerHTML;
-
-  return htmlString;
-}
-
+// Get replacement options by id of a token from TAVR
 async function getReplacements(id) {
   // Change cursor view to show loading
-  document.body.style.cursor = 'wait'
+  document.body.style.cursor = 'progress'
 
   const url = 'http://localhost:5000/get_replacements';
   try {
@@ -210,6 +211,7 @@ async function getReplacements(id) {
 }
 
 // Buttons "clear" and "copy"
+
 function clearText() {
   if (confirm("Do you want to clear the essay and the stats?")) {
     location.reload()
