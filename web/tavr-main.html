@@ -7,18 +7,20 @@
     <title>TAVR</title>
 </head>
 <body>
-    <div class="container">
-        <h1>Analyze your essay with TAVR</h1>
-        <div class="grow-wrap">
-            <textarea id="inputData" onInput="this.parentNode.dataset.replicatedValue = this.value" placeholder="Write your essay here (1500-2000 characters)"  
-            minlength="1500" maxlength="2000" spellcheck="True" required></textarea>
-        </div>
+    <div class="containerEssay">
+        <h1 id="title-above-essay">Analyze your essay with TAVR</h1>
+            <textarea id="inputEssay" onInput="this.parentNode.dataset.replicatedValue = this.value" 
+            placeholder="Write your essay here (1500-1800 characters)"  
+            minlength="1500" maxlength="1800" spellcheck="true"></textarea>
+        <div id="inputMarkedEssay"></div>
         <div class="buttons">
-            <button id="buttonAssess" onclick="showAssessment()" disabled><strong>Assess the vocabulary</strong></button>
+            <button id="buttonAssess" onclick="showAssessment()" disabled><strong>Analyze</strong></button>
             <div id="characterCount">0</div>
             <div id="inputButton"></div>
         </div>
     </div>
+    <div id="inputContainerAssessment"></div>
+    <div id='inputTrigramsTable'></div>
     <script src="tavr-main-script.js"></script>
 </body>
 </html>
