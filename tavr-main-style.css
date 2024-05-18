@@ -16,6 +16,8 @@ h1 {
     background-color: #F9F9F9;
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+
+    z-index: 2;
 }
 textarea {
     width: 1176px;
@@ -88,7 +90,7 @@ textarea {
 
     font-family: sans-serif;
     font-size: 22px;
-    line-height: 1.5;
+    line-height: 1.7;
 
     padding: 10px;
     border: 3px solid white;
@@ -147,49 +149,149 @@ textarea {
         transition: 0.15s
     }
 }
+.tableAssessment {
+    padding: 0px;
+    border: 0px solid #f9f9f982;
+    background-color: #f9f9f982;
+    border-radius: 0px;
+}
+.rowAssessment {
+    padding: 0px;
+    border: 0px solid #f9f9f982;
+    background-color: #f9f9f982;
+    border-radius: 0px;
+}
+.cellAssessment {
+    padding: 10px;
+    border: 0px solid #f9f9f982;
+    background-color: #f9f9f982;
+    border-radius: 0px;
+    align-content: end;
+}
 .vocabularyChart {
-    width: 380px; 
-    height: 380px; 
+    width: 385px; 
+    height: 385px; 
     object-fit: cover;
     object-position: 50% 50%;
-
-    margin: 10px auto;
-    padding: 10px;
     border-radius: 20px;
 }
 .dataframe {
-    max-width: 1000px;
+    width: 385px;
+}
+table {
+    padding: 5px;
+    border: 2px solid #f9f9f982;
+    background-color: white;
+    border-radius: 10px;
+
+    font-size: 22px;
+    text-align: center;
+}
+th {
+    padding: 5px;
+    border: 2px solid white;
+    background-color: white;
+    text-align: center;
+}
+tr {
+    padding: 5px;
+    border: 2px solid white;
+    background-color: white;
+    text-align: center;
+}
+td {
+    padding: 5px;
+    border: 2px solid white;
+    background-color: white;
+    text-align: center;
 }
 span {
     cursor: pointer;
-    border-radius: 5px;
+    border-radius: 7px;
+    padding: 2px;
 }
-#no_data {
+.no_data {
+    cursor: default;
     border: 2px solid #DADADA;
     background-color: #f9f9f982;
 }
-#level0 {
-    cursor: default;
+.level0 {
     border: 2px solid blue;
     background-color: rgba(0, 0, 255, 0.49);
 }
-#level1 {
+.level1 {
     border: 2px solid orange;
     background-color: rgba(255, 166, 0, 0.5);
 }
-#level2 {
+.level2 {
     border: 2px solid green;
     background-color: rgba(0, 128, 0, 0.504);
 }
-#level3 {
+.level3 {
     border: 2px solid red;
     background-color: rgba(255, 0, 0, 0.481);
 }
-#level4 {
+.level4 {
     border: 2px solid purple;
     background-color: rgba(128, 0, 128, 0.5);
 }
-#level5 {
+.level5 {
     border: 2px solid brown;
     background-color: rgba(165, 42, 42, 0.503);
+}
+.replaced {
+    border: 2px solid rgb(0, 0, 0);
+    background-color: rgba(0, 0, 0, 0.195);
+}
+#replacementsPopUpWindow {
+    width: 150px;
+    min-height: 40px;
+    height: auto; 
+    background-color: #F9F9F9;
+    
+    border: 3px solid white;
+    border-radius: 10px;
+
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    z-index: 1;
+}
+#buttonReplacement {
+    width: 140px;
+
+    font-family: sans-serif;
+    font-size: 16px;
+
+    margin: 5px;
+    padding: 5px;
+    border: 0px;
+    border-radius: 10px;
+
+    background-color: white;
+    color: black;
+    
+    cursor: pointer;
+
+    &:hover{
+        background-color: #cccccc;
+        color: white;
+        transition: 0.15s
+    }
+}
+#noReplacements {
+    width: 140px;
+
+    font-family: sans-serif;
+    font-size: 16px;
+
+    margin: 5px;
+    padding: 5px;
+    border: 0px;
+    border-radius: 10px;
+
+    background-color: white;
+    color: rgb(86, 86, 86);
 }

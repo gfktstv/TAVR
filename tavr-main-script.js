@@ -20,14 +20,17 @@ function showAssessment() {
   // Disable textarea
   const textArea = document.getElementById('inputEssay');
   textArea.disabled = true;
+  // Disable button 
+  const buttonAssess = document.getElementById('buttonAssess');
+  buttonAssess.disabled = true;
   // Add measurements from TAVR
   getMeasurementsFromTAVR(inputEssay);
-}
+};
 
 // Add tables, chart and replace textarea with marked up essay
 async function getMeasurementsFromTAVR(inputEssay) {
   // Change cursor view to show loading
-  document.body.style.cursor = 'progress'
+  document.body.style.cursor = 'wait'
   // Send a data to TAVR and get a response
   const essay = inputEssay.value
   const url = 'http://localhost:5000/get_tables';
@@ -118,20 +121,24 @@ function addMeasurements(tableTrigrams, tableStats, tableAcademicFormulas) {
   const inputContainerAssessment = document.getElementById('inputContainerAssessment');
   inputContainerAssessment.innerHTML += `
     <div class='containerAssessment'>
-    <img class='vocabularyChart', src='temporary_files/vocabulary_chart.png'>
-    <div id='inputTableTrigrams'></div>
-    <div id='inputTableStats'></div>
-    <div id='inputTableAcademicFormulas'></div>
+      <table class='tableAssessment'>
+        <tr class='rowAssessment'>
+          <td id='cellChartAndStats' class='cellAssessment'></td>
+          <td id='cellTrigrams' class='cellAssessment'></td>
+          <td id='cellLevelAndAcademicFormulas' class='cellAssessment'></td>
+        </tr>
+      </table>
     </div>
   `;
-  const inputTableTrigrams = document.getElementById('inputTableTrigrams');
-  inputTableTrigrams.innerHTML = tableTrigrams;
-  const inputTableStats = document.getElementById('inputTableStats');
-  inputTableStats.innerHTML = tableStats;
-  const inputTableAcademicFormulas = document.getElementById('inputTableAcademicFormulas');
-  inputTableAcademicFormulas.innerHTML = tableAcademicFormulas;
-  const inputEssay = document.getElementById('inputEssay')
-  inputEssay.innerHTML = `<img class='vocabularyChart', src='temporary_files/vocabulary_chart.png'>`
+  const cellChartAndStats = document.getElementById('cellChartAndStats');
+  cellChartAndStats.innerHTML += `<img class='vocabularyChart', src='temporary_files/vocabulary_chart.png'>`;
+  cellChartAndStats.innerHTML += tableStats;
+
+  const cellTrigrams = document.getElementById('cellTrigrams');
+  cellTrigrams.innerHTML = tableTrigrams;
+
+  const cellLevelAndAcademicFormulas = document.getElementById('cellLevelAndAcademicFormulas');
+  cellLevelAndAcademicFormulas.innerHTML = tableAcademicFormulas;
 }
 
 // Create an array with span objects (marked up essay)
@@ -147,11 +154,13 @@ function markUpText(tokens_and_keys) {
       // Create a span element for each word
       var span = document.createElement("span");
       span.textContent = keys[i];
+      span.id = tokens[keys[i]]['id'];
+      span.id = i;
       if (tokens[keys[i]]['stopword']) {
-        span.id = 'no_data'
+        span.classList.add('no_data');
       } else {
-        span.id = idFromLevel(tokens[keys[i]]['level'])
-        span.setAttribute('onclick', 'getReplacements("' + tokens[keys[i]]['id'] + '")');
+        span.classList.add(tokenCLassFromLevel(tokens[keys[i]]['level']));
+        span.setAttribute('onclick', 'getReplacements("' + span.id + '")');
       }
       // Add the span element to the markedWords array
       markedTextArray.push(span.outerHTML);
@@ -161,7 +170,7 @@ function markUpText(tokens_and_keys) {
 }
 
 // Get ID for span object from level of vocabulary
-function idFromLevel(level) {
+function tokenCLassFromLevel(level) {
   if (level === 'A1') {
     result = 'level0'
   } else if (level === 'A2') {
@@ -181,10 +190,10 @@ function idFromLevel(level) {
 }
 
 // Get replacement options by id of a token from TAVR
-async function getReplacements(id) {
+async function getReplacements(tokenID) {
   // Change cursor view to show loading
   document.body.style.cursor = 'progress'
-
+  // Get response from TAVR
   const url = 'http://localhost:5000/get_replacements';
   try {
       const response = await fetch(url, {
@@ -192,14 +201,15 @@ async function getReplacements(id) {
           headers: {
               'Content-Type': 'application/json'
           }, 
-          body: JSON.stringify({ data: id })
+          body: JSON.stringify({ data: tokenID })
       });
       if (!response.ok) {
           throw new Error('Failed to send data to Flask server');
       }
-      // The response is 3 tables in json format
       const replacements = await response.json();
       console.log(replacements)
+      // Add pop up window
+      addReplacementsPopUpWindow(tokenID, replacements)
       // Change cursor view to default
       document.body.style.cursor = 'default'
   } catch (error) {
@@ -208,6 +218,58 @@ async function getReplacements(id) {
       console.log(error)
       
   }
+}
+
+function addReplacementsPopUpWindow(tokenID, replacements) {
+  // Delete existing replacement window
+  try {
+    const replacementWindow = document.getElementById('replacementsPopUpWindow');
+    replacementWindow.remove()
+  } catch(error) {
+    
+  }
+  const markedEssay = document.getElementById('markedEssay');
+  const replacementsPopUpWindow = document.createElement('div');
+  replacementsPopUpWindow.id = 'replacementsPopUpWindow';
+  for (var i = 0; i < replacements.length; i++) {
+    const buttonReplacement = document.createElement('button');
+    buttonReplacement.id = 'buttonReplacement';
+    buttonReplacement.textContent = replacements[i];
+    buttonReplacement.setAttribute('onclick', 'replace(' + '`' + tokenID + '`' + ', ' + '`' + replacements[i] + '`' + ')');
+
+    replacementsPopUpWindow.innerHTML += buttonReplacement.outerHTML;
+  };
+  if (replacements.length === 0) {
+    const buttonReplacement = document.createElement('button');
+    buttonReplacement.id = 'noReplacements';
+    buttonReplacement.textContent = 'no replacements';
+
+    replacementsPopUpWindow.innerHTML += buttonReplacement.outerHTML;
+  }
+  const position = document.getElementById(String(tokenID)).getBoundingClientRect();
+  console.log(position)
+  const x_pos = position.left;
+  const y_pos = position.top + 35 + window.scrollY;
+  replacementsPopUpWindow.style.position = 'absolute';
+  replacementsPopUpWindow.style.left = x_pos + 'px';
+  replacementsPopUpWindow.style.top = y_pos + 'px';
+
+  replacementsPopUpWindow.setAttribute('onmouseleave', 'removeReplacementWindow()')
+
+  markedEssay.innerHTML += replacementsPopUpWindow.outerHTML;
+}
+
+function replace(tokenID, replacement) {
+  const spanObject = document.getElementById(String(tokenID));
+  spanObject.textContent = replacement;
+
+  spanObject.classList.remove(spanObject.class)
+  spanObject.classList.add('replaced');
+}
+
+function removeReplacementWindow() {
+  const replacementWindow = document.getElementById('replacementsPopUpWindow')
+  replacementWindow.remove()
 }
 
 // Buttons "clear" and "copy"

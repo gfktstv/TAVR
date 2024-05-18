@@ -3,8 +3,6 @@ import json
 from flask import Flask, request, jsonify, redirect, url_for, render_template
 from flask_cors import CORS
 
-import pandas as pd
-
 from tavr import *
 
 
