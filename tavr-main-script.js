@@ -45,10 +45,10 @@ async function getMeasurementsFromTAVR(inputEssay) {
       if (!response.ok) {
           throw new Error('Failed to send data to Flask server');
       }
-      // The response is 3 tables in json format
-      const tables = await response.json();
-      // Add chart and tables to the webpage
-      addMeasurements(tables['0'], tables['1'], tables['2']);
+      // The response is 4 tables and level in json format
+      const tablesAndLevel = await response.json();
+      // Add chart, tables and level to the webpage
+      addMeasurements(tablesAndLevel['0'], tablesAndLevel['1'], tablesAndLevel['2'], tablesAndLevel['3'], tablesAndLevel['4']);
       // The response is tokens in json format and tokens keys in array format (because in json tokens are sorted and idk why)
       var tokens_and_keys = await getTokens();
       // Add marked up essay and remove textarea
@@ -117,28 +117,50 @@ async function getTokens() {
 }
 
 // Add tables, chart and level to the web page
-function addMeasurements(tableTrigrams, tableStats, tableAcademicFormulas) {
-  const inputContainerAssessment = document.getElementById('inputContainerAssessment');
-  inputContainerAssessment.innerHTML += `
-    <div class='containerAssessment'>
-      <table class='tableAssessment'>
-        <tr class='rowAssessment'>
-          <td id='cellChartAndStats' class='cellAssessment'></td>
-          <td id='cellTrigrams' class='cellAssessment'></td>
-          <td id='cellLevelAndAcademicFormulas' class='cellAssessment'></td>
-        </tr>
-      </table>
-    </div>
-  `;
-  const cellChartAndStats = document.getElementById('cellChartAndStats');
-  cellChartAndStats.innerHTML += `<img class='vocabularyChart', src='temporary_files/vocabulary_chart.png'>`;
-  cellChartAndStats.innerHTML += tableStats;
+function addMeasurements(tableTrigrams, tableStats, tableAcademicFormulas, tableRecurringLemmas, level) {
 
-  const cellTrigrams = document.getElementById('cellTrigrams');
-  cellTrigrams.innerHTML = tableTrigrams;
+  const containerAssessment = document.getElementsByClassName('containerAssessment').item(0);
+  containerAssessment.style.display = 'block';
+  const containerChart = document.getElementById('containerChart');
+  containerChart.innerHTML += `<h4>Vocabulary by level`;
+  containerChart.innerHTML += `<img class='vocabularyChart', src='temporary_files/vocabulary_chart.png''>`;
 
-  const cellLevelAndAcademicFormulas = document.getElementById('cellLevelAndAcademicFormulas');
-  cellLevelAndAcademicFormulas.innerHTML = tableAcademicFormulas;
+  const containerStats = document.getElementById('containerStats');
+  containerStats.innerHTML += `<h4>Stats</h4>`;
+  containerStats.innerHTML += tableStats;
+
+  const containerTrigrams = document.getElementById('containerTrigrams');
+  containerTrigrams.innerHTML += `<h4>The most frequent trigrams</h4>`;
+  containerTrigrams.innerHTML += tableTrigrams;
+
+  const containerLevel = document.getElementById('containerLevel');
+  containerLevel.innerHTML += `<h4>CEFR Level</h4>`;
+  containerLevel.innerHTML += `<div class='level'>` + level + `</div>`;
+
+  const containerAcademicFormulas = document.getElementById('containerAcademicFormulas');
+  containerAcademicFormulas.innerHTML += `<h4>Academic phrases</h4>`
+  containerAcademicFormulas.innerHTML += tableAcademicFormulas;
+
+  const containerRecurringLemmas = document.getElementById('containerRecurringLemmas');
+  containerRecurringLemmas.innerHTML += `<h4>Recurring words</h4>` 
+  containerRecurringLemmas.innerHTML += tableRecurringLemmas;
+}
+
+function showToolTip(idToolTip, idContainer) {
+  const chartToolTip = document.getElementById(String(idToolTip));
+  chartToolTip.style.display = 'block';
+
+  const position = document.getElementById(String(idContainer)).getBoundingClientRect();
+  const x_pos = position.left - 150;
+  const y_pos = position.top + 40 + window.scrollY;
+  chartToolTip.style.position = 'absolute';
+  chartToolTip.style.left = x_pos + 'px';
+  chartToolTip.style.top = y_pos + 'px';
+}
+
+function hideToolTip(idToolTip) {
+  const tooltip = document.getElementById(String(idToolTip))
+  tooltip.style.display = 'none';
 }
 
 // Create an array with span objects (marked up essay)
@@ -149,6 +171,7 @@ function markUpText(tokens_and_keys) {
   // Create a new array to hold the marked up words
   var markedTextArray = [];
 
+  markedTextArray.push(`<p>`)
   // Iterate through each word
   for (var i = 0; i < keys.length; i++) {
       // Create a span element for each word
@@ -161,10 +184,16 @@ function markUpText(tokens_and_keys) {
       } else {
         span.classList.add(tokenCLassFromLevel(tokens[keys[i]]['level']));
         span.setAttribute('onclick', 'getReplacements("' + span.id + '")');
+      };
+      if (keys[i] === '\n\n') {
+        // Add the end of the paragraph and a start of a new paragraph to the markedWords array
+        markedTextArray.push(`</p><p>`)
+      } else {
+        // Add the span element to the markedWords array
+        markedTextArray.push(span.outerHTML);
       }
-      // Add the span element to the markedWords array
-      markedTextArray.push(span.outerHTML);
   }
+  markedTextArray.push(`</p>`)
 
   return markedTextArray
 }
@@ -180,7 +209,7 @@ function tokenCLassFromLevel(level) {
   } else if (level === 'B2') {
     result = 'level3'
   } else if (level === 'C1') {
-    reuslt = 'level4'
+    result = 'level4'
   } else if (level === 'C2') {
     result = 'level5'
   } else {
@@ -247,9 +276,8 @@ function addReplacementsPopUpWindow(tokenID, replacements) {
     replacementsPopUpWindow.innerHTML += buttonReplacement.outerHTML;
   }
   const position = document.getElementById(String(tokenID)).getBoundingClientRect();
-  console.log(position)
   const x_pos = position.left;
-  const y_pos = position.top + 35 + window.scrollY;
+  const y_pos = position.top + 40 + window.scrollY;
   replacementsPopUpWindow.style.position = 'absolute';
   replacementsPopUpWindow.style.left = x_pos + 'px';
   replacementsPopUpWindow.style.top = y_pos + 'px';
@@ -263,8 +291,14 @@ function replace(tokenID, replacement) {
   const spanObject = document.getElementById(String(tokenID));
   spanObject.textContent = replacement;
 
-  spanObject.classList.remove(spanObject.class)
+  border = spanObject.style.border;
+  backgroundColor = spanObject.style.backgroundColor;
+  spanObject.classList.remove(spanObject.class);
+
   spanObject.classList.add('replaced');
+  spanObject.style.border = border
+  spanObject.style.backgroundColor = backgroundColor
+  
 }
 
 function removeReplacementWindow() {
@@ -281,8 +315,12 @@ function clearText() {
 }
 
 function copyText() {
-  const inputEssay = document.getElementById('inputEssay').value
-  navigator.clipboard.writeText(inputEssay).then(() => {
+  const innerText = document.getElementById('markedEssay').innerText
+  const regexPunct = /(\s)(?<punct>[^-\w\s]+)/gi;
+  var text = innerText.replace(regexPunct, '$<punct>');
+  const regexDash = /(\s)([-]+)(\s)/gi;
+  text = text.replace(regexDash, '-');
+  navigator.clipboard.writeText(text).then(() => {
     console.log('Content copied to clipboard');
     /* Resolved - text copied to clipboard successfully */
   },() => {

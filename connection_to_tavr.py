@@ -25,10 +25,11 @@ class Connection:
 
             tavr = TextAnalysis(essay)
 
-            trigrams, stats, academic_formulas = tavr.get_data_for_web()
+            trigrams, stats, academic_formulas, reccuring_lemmas, level = tavr.get_data_for_web()
             trigrams_html = trigrams.to_html(index=False)
             stats_html = stats.to_html(index=False, header=False)
             academic_formulas_html = academic_formulas.to_html(index=False)
+            recurring_lemmas_html = reccuring_lemmas.to_html(index=False)
 
             # Original dictionary from TAVR
             self.marked_up_tokens = tavr.marked_up_tokens
@@ -44,7 +45,7 @@ class Connection:
             with open('temporary_files/tokens.json', 'w') as f:
                 json.dump(tokens_for_json, f, indent=2, sort_keys=False)
 
-            return jsonify(trigrams_html, stats_html, academic_formulas_html)
+            return jsonify(trigrams_html, stats_html, academic_formulas_html, recurring_lemmas_html, level)
 
         @self._app.route('/get_tokens', methods=['GET'])
         def get_tokens():

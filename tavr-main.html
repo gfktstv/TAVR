@@ -10,8 +10,8 @@
     <div id="containerEssay" class="containerEssay">
         <h1 id="title-above-essay">Analyze your essay with TAVR</h1>
             <textarea id="inputEssay" onInput="this.parentNode.dataset.replicatedValue = this.value" 
-            placeholder="Write your essay here (1500-1800 characters)"  
-            minlength="1500" maxlength="1800" spellcheck="true"></textarea>
+            placeholder="Write your essay here (1500-2500 characters)"  
+            minlength="1500" maxlength="2500" spellcheck="true"></textarea>
         <div id="inputMarkedEssay"></div>
         <div class="buttons">
             <button id="buttonAssess" onclick="showAssessment()" disabled><strong>Analyze</strong></button>
@@ -19,7 +19,50 @@
             <div id="inputButton"></div>
         </div>
     </div>
-    <div id="inputContainerAssessment"></div>
+    <div id="inputContainerAssessment">
+        <div class='containerAssessment'>
+            <table class='tableAssessment'>
+              <tr class='rowAssessment'>
+                <td class='cellAssessment'>
+                  <div id='containerChart' onmouseover='showToolTip(`chartToolTip`, `containerChart`)' onmouseleave='hideToolTip(`chartToolTip`)'>
+                    <div id='chartToolTip' class='tooltip'>
+                      <p>The chart shows content of vocabulary for each level. Try to use more vocabulary with level B1 and higher</p>
+                    </div>
+                  </div>
+                  <div id='containerStats' onmouseover='showToolTip(`statsToolTip`, `containerStats`)' onmouseleave='hideToolTip(`statsToolTip`)'>
+                    <div id='statsToolTip' class='tooltip'>
+                      <p>Higher TTR means less recurring words. Average trigram frequency shows how frequent trigrams (e.g. on the one)</p>
+                    </div>
+                  </div>
+                </td>
+                <td class='cellAssessment'>
+                  <div id='containerTrigrams' onmouseover='showToolTip(`trigramsToolTip`, `containerTrigrams`)' onmouseleave='hideToolTip(`trigramsToolTip`)'>
+                    <div id='trigramsToolTip' class='tooltip'>
+                      <p>It is better to replace high frequent trigrams (>100) because they are cliche</p>
+                    </div>
+                  </div>
+                </td>
+                <td class='cellAssessment'>
+                  <div id='containerLevel' onmouseover='showToolTip(`levelToolTip`, `containerLevel`)' onmouseleave='hideToolTip(`levelToolTip`)'>
+                    <div id='levelToolTip' class='tooltip'>
+                      <p>The level based on TTR, it may be wrong</p>
+                    </div>
+                  </div>
+                  <div id='containerRecurringLemmas' onmouseover='showToolTip(`recurringLemmasToolTip`, `containerRecurringLemmas`)' onmouseleave='hideToolTip(`recurringLemmasToolTip`)'>
+                    <div id='recurringLemmasToolTip' class='tooltip'>
+                      <p>It is better to replace recurring words by click on them in a text area</p>
+                    </div>
+                  </div>
+                  <div id='containerAcademicFormulas' onmouseover='showToolTip(`academicFormulasToolTip`, `containerAcademicFormulas`)' onmouseleave='hideToolTip(`academicFormulasToolTip`)'>
+                    <div id='academicFormulasToolTip' class='tooltip'>
+                      <p>If your essay is academic one you should use more academic phrases. See more <a href='https://www.eapfoundation.com/vocab/academic/afl/' target="_blank">academic phrases</a></p>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </table>
+          </div>
+    </div>
     <div id='inputTrigramsTable'></div>
     <script src="tavr-main-script.js"></script>
 </body>
