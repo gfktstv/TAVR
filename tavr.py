@@ -15,8 +15,6 @@ import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 
-import uuid
-
 nlp = spacy.load('en_core_web_lg')
 nlp.add_pipe('spacy-ngram')  # Pipeline for n-gram marking
 
@@ -48,54 +46,70 @@ class _Text:
     def __str__(self):
         return self.content
 
-    def get_tokens(self, punct=False, insignificant=True):
+    def get_tokens(self, include_punct=False, include_insignificant=True):
         """
         Returns a list of _tokens with or without punctuation marks and insignificant for lexical measures words.
-        Insignificant words are stopwords or words with one of these part of speech: proper noun, symbol, particle,
-        coordinating conjunction, adposition or unknown part of speech
 
-        :param bool punct: Include punctuation marks in output list
-        :param bool insignificant: Include insignificant for lexical measures tokens (stopwords, proper names, etc.)
+        :param bool include_punct: Include punctuation marks in output list
+        :param bool include_insignificant: Include stopwords, proper nouns, symbols, particles, adposition,
+                                           coordinating conjunction and unknown parts of speech
         """
-        if punct:
+        if include_punct:
             tokens = [token for token in self.nlp_doc]
         else:
             tokens = [token for token in self.nlp_doc if not token.is_punct]
 
         banned_pos = ['PROPN', 'SYM', 'PART', 'CCONJ', 'ADP', 'X']
-        if insignificant is False:
+        if include_insignificant is False:
             tokens = [token for token in tokens if (not token.is_stop) and (token.pos_ not in banned_pos)]
-            if len(tokens) < 100:
+            if len(tokens) < 50:
                 raise TokensAreNotRecognized(
-                    f'SpaCy module recognized only {len(tokens)} tokens which is less then 100'
+                    f'SpaCy module recognized only {len(tokens)} tokens which is less then 50'
                 )
 
         return tokens
 
-    def get_lemmas(self, insignificant=True):
+    def get_lemmas(self, include_insignificant=True):
         """
         Returns a list of lemmas with or without insignificant for lexical measures words.
-        Insignificant words are stopwords or words with one of these part of speech: proper noun, symbol, particle,
-        coordinating conjunction, adposition or unknown part of speech
 
-        :param bool insignificant: Include insignificant for lexical measures tokens (stopwords, proper names, etc.)
+        :param bool include_insignificant: Include stopwords, proper nouns, symbols, particles, adposition,
+                                           coordinating conjunction and unknown parts of speech
         """
-        if insignificant:
+        if include_insignificant:
             return [token.lemma_ for token in self.get_tokens(False, True)]
         else:
             return [token.lemma_ for token in self.get_tokens(False, False)]
 
-    def get_types(self, insignificant=True):
+    def get_lemmas_occurrences(self, include_insignificant=False):
         """
-        Returns a list of types with or without insignificant for lexical measures words (see get_tokens).
-        Insignificant words are stopwords or words with one of these part of speech: proper noun, symbol, particle,
-        coordinating conjunction, adposition or unknown part of speech
+        Returns a dict of lemmas with number of occurrences
 
-        :param bool insignificant: Include insignificant for lexical measures tokens (stopwords, proper names, etc.)
+        :param bool include_insignificant: Include stopwords, proper nouns, symbols, particles, adposition,
+                                           coordinating conjunction and unknown parts of speech
+        """
+        lemmas_occurrences = dict()
+
+        if include_insignificant:
+            lemmas = [lemma for lemma in self.get_lemmas(include_insignificant=True) if lemma != '\n\n']
+        else:
+            lemmas = [lemma for lemma in self.get_lemmas(include_insignificant=False) if lemma != '\n\n']
+
+        for lemma in lemmas:
+            lemmas_occurrences[lemma] = lemmas.count(lemma)
+
+        return lemmas_occurrences
+
+    def get_types(self, include_insignificant=True):
+        """
+        Returns a list of types with or without insignificant for lexical measures words.
+
+        :param bool include_insignificant: Include stopwords, proper nouns, symbols, particles, adposition,
+                                           coordinating conjunction and unknown parts of speech
         """
         types = list()
         unique_tokens_text = list()
-        if insignificant:
+        if include_insignificant:
             for token in self.get_tokens():
                 if token.text not in unique_tokens_text:
                     types.append(token)
@@ -103,7 +117,7 @@ class _Text:
             return types
         else:
             unique_tokens_text = list()
-            for token in self.get_tokens(insignificant=False):
+            for token in self.get_tokens(include_insignificant=False):
                 if token.text not in unique_tokens_text:
                     types.append(token)
                     unique_tokens_text.append(token.text)
@@ -164,8 +178,8 @@ class _LexicalSophisticationMeasurements:
         if text is not None:
             assert isinstance(text, _Text)
             self._content = text.content
-            self._tokens = text.get_tokens()
-            self._significant_tokens = text.get_tokens(False, False)
+            self._tokens = text.get_tokens(include_punct=True, include_insignificant=True)
+            self._significant_tokens = text.get_tokens(include_punct=False, include_insignificant=False)
             self._bigrams = text.get_bigrams()
             self._trigrams = text.get_trigrams()
         # For replacement options
@@ -181,13 +195,13 @@ class _LexicalSophisticationMeasurements:
         # Token dict is a dictionary with frequency, range, academic and level keys and unique id
         self._marked_up_tokens = dict()
         for token in self._tokens:
-            if not token.is_stop:
+            if token.is_stop or token.is_punct:
+                self._marked_up_tokens[token] = {'stopword': True, 'id': self._tokens.index(token)}
+            else:
                 self._marked_up_tokens[token] = {
                     'stopword': False, 'freq': 0, 'range': 0,
                     'academic': bool(), 'level': None, 'id': self._tokens.index(token)
                 }
-            if token.is_stop:
-                self._marked_up_tokens[token] = {'stopword': True, 'id': self._tokens.index(token)}
 
         # Dictionary consisting of n-gram and n-gram_dict.
         # N-gram dict is a dictionary with frequency and range.
@@ -208,10 +222,10 @@ class _LexicalSophisticationMeasurements:
         """
         # Load and read tagged corpus, then tokenize (and lemmatize) it and create a frequency and range dictionary
         brown_freq = ct.frequency(ct.tokenize(ct.ldcorpus(
-            'C:/Users/gfktstv/Documents/GitHub/tavr/corpora/tagged_brown', verbose=False))
+            'corpora/tagged_brown', verbose=False))
         )
         brown_range = ct.frequency(ct.tokenize(ct.ldcorpus(
-            'C:/Users/gfktstv/Documents/GitHub/tavr/corpora/tagged_brown', verbose=False)), calc='range'
+            'corpora/tagged_brown', verbose=False)), calc='range'
         )
 
         # Create lists of frequencies and ranges for calculating average values further
@@ -252,17 +266,17 @@ class _LexicalSophisticationMeasurements:
         """
         # Create n-grams frequency and range dictionary
         brown_bigram_freq = ct.frequency(ct.tokenize(ct.ldcorpus(
-            'C:/Users/gfktstv/Documents/GitHub/tavr/corpora/brown', verbose=False), lemma=False, ngram=2)
+            'corpora/brown', verbose=False), lemma=False, ngram=2)
         )
         brown_bigram_range = ct.frequency(ct.tokenize(ct.ldcorpus(
-            'C:/Users/gfktstv/Documents/GitHub/tavr/corpora/brown', verbose=False), lemma=False, ngram=2),
+            'corpora/brown', verbose=False), lemma=False, ngram=2),
             calc='range'
         )
         brown_trigram_freq = ct.frequency(ct.tokenize(ct.ldcorpus(
-            'C:/Users/gfktstv/Documents/GitHub/tavr/corpora/brown', verbose=False), lemma=False, ngram=3)
+            'corpora/brown', verbose=False), lemma=False, ngram=3)
         )
         brown_trigram_range = ct.frequency(ct.tokenize(ct.ldcorpus(
-            'C:/Users/gfktstv/Documents/GitHub/tavr/corpora/brown', verbose=False), lemma=False, ngram=3),
+            'corpora/brown', verbose=False), lemma=False, ngram=3),
             calc='range'
         )
 
@@ -316,7 +330,7 @@ class _LexicalSophisticationMeasurements:
 
         """
         # Converts AFL csv to list
-        AFL_csv = pd.read_csv('C:/Users/gfktstv/Documents/GitHub/tavr/corpora/AFL.csv')
+        AFL_csv = pd.read_csv('corpora/AFL.csv')
         academic_formulas_list = [
             [record['Formula'], record['Frequency per million']] for record in AFL_csv.to_dict('records')
         ]
@@ -353,7 +367,7 @@ class _LexicalSophisticationMeasurements:
 
         """
         academic_word_list = list()
-        with open('C:/Users/gfktstv/Documents/GitHub/tavr/corpora/AWL.txt', 'r') as file:
+        with open('corpora/AWL.txt', 'r') as file:
             for row in file:
                 academic_word_list.append(row.rstrip('\n'))
 
@@ -382,7 +396,7 @@ class _LexicalSophisticationMeasurements:
             2: 'A1', 3: 'A2', 4: 'B1', 5: 'B2', 6: 'C1'
         }
         efllex_corpus = pd.read_csv(
-            'C:/Users/gfktstv/Documents/GitHub/tavr/corpora/EFLLex_NLP4J',
+            'corpora/EFLLex_NLP4J',
             delimiter='\\t',
             engine='python'
         )
@@ -509,7 +523,7 @@ class _LexicalDiversityMeasurements:
 
     def __init__(self, text):
         assert isinstance(text, _Text)
-        self._lemmatized_text = text.get_lemmas(insignificant=False)
+        self._lemmatized_text = text.get_lemmas(include_insignificant=False)
 
     def indexes_data(self):
         data_dict = {
@@ -562,13 +576,15 @@ class TextAnalysis:
         amount_of_vocabulary_by_level = list(self._vocabulary_by_level_dict.values())
         # Levels (labels)
         levels_of_vocabulary = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2']
+        colors = ['#FFE89C', '#FFCF32', '#EA8198',
+                  '#EC2C55', '#AB60C6', '#7E00AC']
 
         ax.pie(amount_of_vocabulary_by_level,
                labels=levels_of_vocabulary,
-               autopct='%1.1f%%'
+               autopct='%1.1f%%',
+               colors=colors
                )
-        plt.title('Vocabulary by level')
-        plt.savefig('vocabulary_chart.png')
+        plt.savefig('temporary_files/vocabulary_chart.png')
 
     def _get_trigrams_table(self):
         """
@@ -607,6 +623,10 @@ class TextAnalysis:
                 academic_formulas_dict['Academic formula'].append(n_gram)
                 academic_formulas_dict['Frequency'].append(n_gram_dict['freq'])
         academic_formulas = pd.DataFrame(academic_formulas_dict)
+
+        if academic_formulas.empty:
+            academic_formulas = pd.DataFrame({'Academic formula': ['Not found'], 'Frequency': ['-']})
+
         if academic_formulas.shape[0] >= 10:
             return academic_formulas.head(10)
         else:
@@ -620,13 +640,57 @@ class TextAnalysis:
         """
         stats_dict = {'metric': list(), 'value': list()}
         stats_dict['metric'].append('TTR')
-        stats_dict['value'].append(self._lexical_diversity_measurements['TTR'])
-        stats_dict['metric'].append('MTLD')
-        stats_dict['value'].append(self._lexical_diversity_measurements['MTLD'])
+        stats_dict['value'].append(round(self._lexical_diversity_measurements['TTR'], 1))
         stats_dict['metric'].append('Academic words')
-        stats_dict['value'].append(self._lexical_sophistication_measurements['Percentage of academic words'])
+        stats_dict['value'].append(round(self._lexical_sophistication_measurements['Amount of academic words']))
+        stats_dict['metric'].append('Average trigram frequency')
+        stats_dict['value'].append(round(self._lexical_sophistication_measurements['Trigram frequency average'], 1))
         stats = pd.DataFrame(stats_dict)
         return stats
+
+    def get_recurring_lemmas(self, include_insignificant=False):
+        """
+        Returns a CSV table of 10 or less lemmas which occur in a text 2 or more times
+
+        :param bool include_insignificant: Include stopwords, proper nouns, symbols, particles, adposition,
+                                           coordinating conjunction and unknown parts of speech
+        """
+        recurring_lemmas_dict = {
+            'Lemma': list(), 'Occurrences': list()
+        }
+        if include_insignificant:
+            lemmas_occurrences = self._text.get_lemmas_occurrences(include_insignificant=True)
+        else:
+            lemmas_occurrences = self._text.get_lemmas_occurrences(include_insignificant=False)
+
+        for lemma, occurrences in lemmas_occurrences.items():
+            if occurrences >= 2:
+                recurring_lemmas_dict['Lemma'].append(lemma)
+                recurring_lemmas_dict['Occurrences'].append(occurrences)
+        recurring_lemmas = pd.DataFrame(recurring_lemmas_dict).sort_values(by='Occurrences', ascending=False)
+
+        if recurring_lemmas.shape[0] >= 10:
+            return recurring_lemmas.head(10)
+        else:
+            return recurring_lemmas.head(recurring_lemmas.shape[0])
+
+    def get_level(self):
+        """Returns a CEFR level (A1, A2, B1, etc.) based on TTR value as the metric with the biggest correlation"""
+        TTR = self._lexical_diversity_measurements['TTR']
+        coefficients = [-59.4178015, 69.99997391, -13.2177359]
+
+        degree = len(coefficients) - 1
+        score = sum([coefficients[i] * (TTR ** (degree - i)) for i in range(len(coefficients))])
+        if score <= 4:
+            return f'A2 ({round(score)}/9)'
+        elif score <= 5:
+            return f'B1 ({round(score)}/9)'
+        elif score <= 6.5:
+            return f'B2 ({round(score)}/9)'
+        elif score <= 8:
+            return f'C1 ({round(score)}/9)'
+        else:
+            return f'C2 ({round(score)}/9)'
 
     def get_data_for_web(self):
         """
@@ -636,8 +700,10 @@ class TextAnalysis:
         trigrams = self._get_trigrams_table()
         academic_formulas = self._get_academic_formulas_table()
         stats = self._get_stats_table()
+        recurring_lemmas = self.get_recurring_lemmas()
+        level = self.get_level()
         self._get_vocabulary_chart()
-        return trigrams, stats, academic_formulas
+        return trigrams, stats, academic_formulas, recurring_lemmas, level
 
     @property
     def lexical_sophistication_measurements(self):
@@ -740,7 +806,7 @@ class TokenReplacementOptions:
         # Excludes synonyms which are not in EFLLex corpus
         synonyms = {key: value for key, value in marked_up_synonyms.items() if value['level'] != 'C2'}
         # Leaves only synonyms with higher CEFR level or lower frequency or lower range and excludes freq/range equal 0
-        levels = ['A1', 'A2', 'B1', 'B2', 'C1']
+        levels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2']
         synonyms = {key: value for key, value in synonyms.items()
                     if (value['freq'] < token_freq) or (value['range'] < token_range)
                     or (levels.index(value['level']) > levels.index(token_level))
