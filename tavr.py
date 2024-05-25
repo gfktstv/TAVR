@@ -564,7 +564,7 @@ class TextAnalysis:
         self._marked_up_n_grams = self._lex_sop.marked_up_n_grams
         self._vocabulary_by_level_dict = self._lex_sop.vocabulary_by_level_dict
 
-    def _get_vocabulary_chart(self):
+    def get_vocabulary_chart(self):
         """
         Creates a pie chart with the CEFR levels (A1, A2, B1, etc.) and appropriate number of words from a given essay.
 
@@ -586,11 +586,11 @@ class TextAnalysis:
                )
         plt.savefig('temporary_files/vocabulary_chart.png')
 
-    def _get_trigrams_table(self):
+    def get_trigrams_dataframe(self):
         """
-        Creates a csv table with trigrams with the biggest frequency or range from a given essay.
+        Creates a pandas DataFrame with trigrams with the biggest frequency or range from a given essay.
 
-        Returns a csv table with 10 or fewer rows
+        Returns a pandas DataFrame
         """
         sorted_trigrams = sorted(self._marked_up_n_grams.items(), key=lambda x: x[1]['freq'], reverse=True)
         # Dictionary that will be converted into CSV table
@@ -603,16 +603,13 @@ class TextAnalysis:
                 trigrams_dict['Frequency'].append(trigram_tuple[1]['freq'])
                 trigrams_dict['Range'].append(trigram_tuple[1]['range'])
         trigrams = pd.DataFrame(trigrams_dict)
-        if trigrams.shape[0] >= 10:
-            return trigrams.head(10)
-        else:
-            return trigrams.head(trigrams.shape[0])
+        return trigrams
 
-    def _get_academic_formulas_table(self):
+    def get_academic_formulas_dataframe(self):
         """
-        Creates a csv table with academic formulas and their frequency from a given text.
+        Creates a pandas DataFrame with academic formulas and their frequency from a given text.
 
-        Returns a csv table with 10 or fewer rows
+        Returns a pandas DataFrame
         """
         # Dictionary that will be converted into CSV table
         academic_formulas_dict = {
@@ -627,12 +624,9 @@ class TextAnalysis:
         if academic_formulas.empty:
             academic_formulas = pd.DataFrame({'Academic formula': ['Not found'], 'Frequency': ['-']})
 
-        if academic_formulas.shape[0] >= 10:
-            return academic_formulas.head(10)
-        else:
-            return academic_formulas.head(academic_formulas.shape[0])
+        return academic_formulas
 
-    def _get_stats_table(self):
+    def get_stats_dataframe(self):
         """
         Creates a csv table with data from indexes and percentage of academic words.
 
@@ -648,9 +642,9 @@ class TextAnalysis:
         stats = pd.DataFrame(stats_dict)
         return stats
 
-    def get_recurring_lemmas(self, include_insignificant=False):
+    def get_recurring_lemmas_dataframe(self, include_insignificant=False):
         """
-        Returns a CSV table of 10 or less lemmas which occur in a text 2 or more times
+        Returns a pandas DataFrame of lemmas which occur in a text 2 or more times
 
         :param bool include_insignificant: Include stopwords, proper nouns, symbols, particles, adposition,
                                            coordinating conjunction and unknown parts of speech
@@ -669,10 +663,7 @@ class TextAnalysis:
                 recurring_lemmas_dict['Occurrences'].append(occurrences)
         recurring_lemmas = pd.DataFrame(recurring_lemmas_dict).sort_values(by='Occurrences', ascending=False)
 
-        if recurring_lemmas.shape[0] >= 10:
-            return recurring_lemmas.head(10)
-        else:
-            return recurring_lemmas.head(recurring_lemmas.shape[0])
+        return recurring_lemmas
 
     def get_level(self):
         """Returns a CEFR level (A1, A2, B1, etc.) based on TTR value as the metric with the biggest correlation"""
@@ -697,12 +688,30 @@ class TextAnalysis:
         Returns table with the most frequent trigrams, stats (indexes and other information), academic formulas
         and saves vocabulary_chart.png
         """
-        trigrams = self._get_trigrams_table()
-        academic_formulas = self._get_academic_formulas_table()
-        stats = self._get_stats_table()
-        recurring_lemmas = self.get_recurring_lemmas()
+        trigrams = self.get_trigrams_dataframe()
+        # Leave only first 10 entities or fewer
+        if trigrams.shape[0] >= 10:
+            trigrams = trigrams.head(10)
+        else:
+            trigrams = trigrams.head(trigrams.shape[0])
+
+        academic_formulas = self.get_academic_formulas_dataframe()
+        # Leave only first 10 entities or fewer
+        if academic_formulas.shape[0] >= 10:
+            academic_formulas = academic_formulas.head(10)
+        else:
+            academic_formulas = academic_formulas.head(academic_formulas.shape[0])
+
+        recurring_lemmas = self.get_recurring_lemmas_dataframe()
+        # Leave only first 10 entities or fewer
+        if recurring_lemmas.shape[0] >= 10:
+            recurring_lemmas = recurring_lemmas.head(10)
+        else:
+            recurring_lemmas = recurring_lemmas.head(recurring_lemmas.shape[0])
+
         level = self.get_level()
-        self._get_vocabulary_chart()
+        stats = self.get_stats_dataframe()
+        self.get_vocabulary_chart()
         return trigrams, stats, academic_formulas, recurring_lemmas, level
 
     @property
