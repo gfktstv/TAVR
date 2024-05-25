@@ -790,13 +790,13 @@ class TokenReplacementOptions:
                     synonyms.append(synonym.name())
         return synonyms
 
-    def get_replacement_options(self, token, token_text=False):
+    def get_replacement_options(self, token, return_token_text=False):
         """
         Returns replacement options based on synonyms of a token excluding synonyms with lower CEFR level,
         higher frequency & range and ones which are not in EFLLex corpus.
 
         :param spacy.tokens.token.Token token: SpaCy token from a text
-        :param bool token_text: Whether return text of tokens (str format) or tokens (spaCy token format)
+        :param bool return_token_text: Whether return text of tokens (str format) or tokens (spaCy token format)
         """
         assert isinstance(token, spacy.tokens.token.Token)
         # Assigns instance of LexicalSophisticationMeasurements for synonyms
@@ -822,7 +822,7 @@ class TokenReplacementOptions:
                     and ((value['freq'] != 0) and (value['range'] != 0))}
         # Sorts synonyms by level
         synonyms_sorted_by_level = sorted(synonyms.items(), key=lambda x: x[1]['level'], reverse=True)
-        if token_text:
+        if return_token_text:
             replacements = [synonym_set[0].text for synonym_set in synonyms_sorted_by_level]
         else:
             replacements = [synonym_set[0] for synonym_set in synonyms_sorted_by_level]

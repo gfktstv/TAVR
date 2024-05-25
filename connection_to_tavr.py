@@ -58,8 +58,9 @@ class Connection:
             response = request.get_json()
             id = response.get('data')
             token = self.token_id_dict[f'{id}']
-            replacements = tavr.TokenReplacementOptions(self.marked_up_tokens).get_replacement_options(token,
-                                                                                                       True)
+            replacements = tavr.TokenReplacementOptions(self.marked_up_tokens).get_replacement_options(
+                token, True
+            )
             return jsonify(replacements)
 
         if __name__ == '__main__':
