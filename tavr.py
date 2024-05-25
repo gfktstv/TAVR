@@ -683,7 +683,7 @@ class TextAnalysis:
         else:
             return f'C2 ({round(score)}/9)'
 
-    def get_data_for_web(self):
+    def _get_data_for_web(self):
         """
         Returns table with the most frequent trigrams, stats (indexes and other information), academic formulas
         and saves vocabulary_chart.png

@@ -3,7 +3,7 @@ import json
 from flask import Flask, request, jsonify, redirect, url_for, render_template
 from flask_cors import CORS
 
-from tavr import *
+import tavr
 
 
 class Connection:
@@ -23,16 +23,16 @@ class Connection:
             data = request.get_json()
             essay = data.get('data')
 
-            tavr = TextAnalysis(essay)
+            tavr_text_analysis = tavr.TextAnalysis(essay)
 
-            trigrams, stats, academic_formulas, reccuring_lemmas, level = tavr.get_data_for_web()
+            trigrams, stats, academic_formulas, recurring_lemmas, level = tavr_text_analysis._get_data_for_web()
             trigrams_html = trigrams.to_html(index=False)
             stats_html = stats.to_html(index=False, header=False)
             academic_formulas_html = academic_formulas.to_html(index=False)
-            recurring_lemmas_html = reccuring_lemmas.to_html(index=False)
+            recurring_lemmas_html = recurring_lemmas.to_html(index=False)
 
             # Original dictionary from TAVR
-            self.marked_up_tokens = tavr.marked_up_tokens
+            self.marked_up_tokens = tavr_text_analysis.marked_up_tokens
             # Dictionary token.text as a key and id as a value
             for token in list(self.marked_up_tokens.keys()):
                 self.token_id_dict[f'{self.marked_up_tokens[token]['id']}'] = token
@@ -40,7 +40,7 @@ class Connection:
             self.tokens_text = [token.text for token in list(self.marked_up_tokens.keys())]
             # Dictionary of tokens to return it to javascript
             tokens_for_json = dict()
-            for key, value in tavr.marked_up_tokens.items():
+            for key, value in tavr_text_analysis.marked_up_tokens.items():
                 tokens_for_json[f'{key.text}'] = value
             with open('temporary_files/tokens.json', 'w') as f:
                 json.dump(tokens_for_json, f, indent=2, sort_keys=False)
@@ -58,7 +58,8 @@ class Connection:
             response = request.get_json()
             id = response.get('data')
             token = self.token_id_dict[f'{id}']
-            replacements = TokenReplacementOptions(self.marked_up_tokens).get_replacement_options(token, True)
+            replacements = tavr.TokenReplacementOptions(self.marked_up_tokens).get_replacement_options(token,
+                                                                                                       True)
             return jsonify(replacements)
 
         if __name__ == '__main__':
