@@ -46,82 +46,108 @@ class _Text:
     def __str__(self):
         return self.content
 
-    def get_tokens(self, include_punct=False, include_insignificant=True):
+    def get_tokens(self, include_punct=False, include_content_words=True, include_functional_words=True):
         """
         Returns a list of _tokens with or without punctuation marks and insignificant for lexical measures words.
 
         :param bool include_punct: Include punctuation marks in output list
-        :param bool include_insignificant: Include stopwords, proper nouns, symbols, particles, adposition,
+        :param bool include_content_words: Include content words (those words which are not functional)
+        :param bool include_functional_words: Include stopwords, proper nouns, symbols, particles, adposition,
                                            coordinating conjunction and unknown parts of speech
         """
-        if include_punct:
-            tokens = [token for token in self.nlp_doc]
-        else:
-            tokens = [token for token in self.nlp_doc if not token.is_punct]
-
+        tokens = list()
         banned_pos = ['PROPN', 'SYM', 'PART', 'CCONJ', 'ADP', 'X']
-        if include_insignificant is False:
-            tokens = [token for token in tokens if (not token.is_stop) and (token.pos_ not in banned_pos)]
+        if include_content_words and include_functional_words:
+            tokens = [token for token in self.nlp_doc]
+            # Check for small text or if text not in English
             if len(tokens) < 50:
                 raise TokensAreNotRecognized(
                     f'SpaCy module recognized only {len(tokens)} tokens which is less then 50'
                 )
+        elif include_content_words:
+            tokens = [token for token in self.nlp_doc if (not token.is_stop) and (token.pos_ not in banned_pos)]
+            # Check for small text or if text not in English
+            if len(tokens) < 50:
+                raise TokensAreNotRecognized(
+                    f'SpaCy module recognized only {len(tokens)} tokens which is less then 50'
+                )
+        elif include_functional_words:
+            tokens = [token for token in self.nlp_doc if token.is_stop or (token.pos_ in banned_pos)]
+
+        if include_punct and (len(tokens) == 0):
+            # For a option with only punctuational marks being returned
+            tokens = [token for token in self.nlp_doc if token.is_punct]
+        elif include_punct is False:
+            tokens = [token for token in tokens if not token.is_punct]
 
         return tokens
 
-    def get_lemmas(self, include_insignificant=True):
+    def get_lemmas(self, include_content_words=True, include_functional_words=True):
         """
         Returns a list of lemmas with or without insignificant for lexical measures words.
 
-        :param bool include_insignificant: Include stopwords, proper nouns, symbols, particles, adposition,
+        :param bool include_content_words: Include content words (those words which are not functional)
+        :param bool include_functional_words: Include stopwords, proper nouns, symbols, particles, adposition,
                                            coordinating conjunction and unknown parts of speech
         """
-        if include_insignificant:
-            return [token.lemma_ for token in self.get_tokens(False, True)]
-        else:
-            return [token.lemma_ for token in self.get_tokens(False, False)]
+        tokens = list()
+        if include_content_words and include_functional_words:
+            tokens = self.get_tokens(include_content_words=True, include_functional_words=True)
+        elif include_content_words:
+            tokens = self.get_tokens(include_content_words=True, include_functional_words=False)
+        elif include_functional_words:
+            tokens = self.get_tokens(include_content_words=False, include_functional_words=True)
 
-    def get_lemmas_occurrences(self, include_insignificant=False):
+        return [token.lemma_ for token in tokens]
+
+    def get_lemmas_occurrences(self, include_content_words=True, include_functional_words=False):
         """
         Returns a dict of lemmas with number of occurrences
 
-        :param bool include_insignificant: Include stopwords, proper nouns, symbols, particles, adposition,
+        :param bool include_content_words: Include content words (those words which are not functional)
+        :param bool include_functional_words: Include stopwords, proper nouns, symbols, particles, adposition,
                                            coordinating conjunction and unknown parts of speech
         """
+        lemmas = list()
+        if include_content_words and include_functional_words:
+            lemmas = self.get_lemmas(include_content_words=True, include_functional_words=True)
+        elif include_content_words:
+            lemmas = self.get_lemmas(include_content_words=True, include_functional_words=False)
+        elif include_functional_words:
+            lemmas = self.get_lemmas(include_content_words=False, include_functional_words=True)
+
+        # Clean from '\n\n' (they are needed in tokens for a web app to preserve paragraphs after marking up an essay)
+        lemmas = [lemma for lemma in lemmas if lemma != '\n\n']
+
         lemmas_occurrences = dict()
-
-        if include_insignificant:
-            lemmas = [lemma for lemma in self.get_lemmas(include_insignificant=True) if lemma != '\n\n']
-        else:
-            lemmas = [lemma for lemma in self.get_lemmas(include_insignificant=False) if lemma != '\n\n']
-
         for lemma in lemmas:
             lemmas_occurrences[lemma] = lemmas.count(lemma)
 
         return lemmas_occurrences
 
-    def get_types(self, include_insignificant=True):
+    def get_types(self, include_content_words=True, include_functional_words=True):
         """
-        Returns a list of types with or without insignificant for lexical measures words.
+        Returns a list of types (words from a text without repetitions).
 
-        :param bool include_insignificant: Include stopwords, proper nouns, symbols, particles, adposition,
+        :param bool include_content_words: Include content words (those words which are not functional)
+        :param bool include_functional_words: Include stopwords, proper nouns, symbols, particles, adposition,
                                            coordinating conjunction and unknown parts of speech
         """
+        tokens = list()
+        if include_content_words and include_functional_words:
+            tokens = self.get_tokens(include_content_words=True, include_functional_words=True)
+        elif include_content_words:
+            tokens = self.get_tokens(include_content_words=True, include_functional_words=False)
+        elif include_functional_words:
+            tokens = self.get_tokens(include_content_words=False, include_functional_words=True)
+
         types = list()
         unique_tokens_text = list()
-        if include_insignificant:
-            for token in self.get_tokens():
-                if token.text not in unique_tokens_text:
-                    types.append(token)
-                    unique_tokens_text.append(token.text)
-            return types
-        else:
-            unique_tokens_text = list()
-            for token in self.get_tokens(include_insignificant=False):
-                if token.text not in unique_tokens_text:
-                    types.append(token)
-                    unique_tokens_text.append(token.text)
-            return types
+        for token in tokens:
+            if token.text not in unique_tokens_text:
+                types.append(token)
+                unique_tokens_text.append(token.text)
+        return types
 
     def get_bigrams(self):
         """Returns a list of bigrams. Tokens in bigrams divided by __"""
@@ -178,8 +204,15 @@ class _LexicalSophisticationMeasurements:
         if text is not None:
             assert isinstance(text, _Text)
             self._content = text.content
-            self._tokens = text.get_tokens(include_punct=True, include_insignificant=True)
-            self._significant_tokens = text.get_tokens(include_punct=False, include_insignificant=False)
+            self._tokens = text.get_tokens(
+                include_punct=True, include_content_words=True, include_functional_words=True
+            )
+            self._content_tokens = text.get_tokens(
+                include_punct=False, include_content_words=True, include_functional_words=False
+            )
+            self._functional_tokens = text.get_tokens(
+                include_punct=False, include_content_words=False, include_functional_words=True
+            )
             self._bigrams = text.get_bigrams()
             self._trigrams = text.get_trigrams()
         # For replacement options
@@ -188,19 +221,27 @@ class _LexicalSophisticationMeasurements:
             doc = Doc(nlp.vocab, words=token_list, pos=[pos_tag for i in range(len(token_list))], lemmas=token_list)
             banned_pos = ['PROPN', 'SYM', 'PART', 'CCONJ', 'ADP', 'X']
             self._tokens = [token for token in doc if (not token.is_punct)]
-            self._significant_tokens = [token for token in doc if (not token.is_stop)
-                                        and (token.pos_ not in banned_pos) and (not token.is_punct)]
+            self._content_tokens = [token for token in doc if (not token.is_stop)
+                                    and (token.pos_ not in banned_pos) and (not token.is_punct)]
+            self._functional_tokens = [token for token in doc if (token.is_stop or token.pos_ in banned_pos)
+                                       and (not token.is_punct)]
 
         # Dictionary consisting of token and token_dict.
         # Token dict is a dictionary with frequency, range, academic and level keys and unique id
         self._marked_up_tokens = dict()
         for token in self._tokens:
-            if token.is_stop or token.is_punct:
-                self._marked_up_tokens[token] = {'stopword': True, 'id': self._tokens.index(token)}
+            if token in self._functional_tokens:
+                self._marked_up_tokens[token] = {
+                    'punct': False, 'functional_word': True, 'id': self._tokens.index(token)
+                }
+            elif token in self._content_tokens:
+                self._marked_up_tokens[token] = {
+                    'punct': False, 'functional_word': False, 'freq': 0, 'range': 0,
+                    'academic': bool(), 'level': None, 'id': self._tokens.index(token)
+                }
             else:
                 self._marked_up_tokens[token] = {
-                    'stopword': False, 'freq': 0, 'range': 0,
-                    'academic': bool(), 'level': None, 'id': self._tokens.index(token)
+                    'punct': True, 'functional_word': False, 'id': self._tokens.index(token)
                 }
 
         # Dictionary consisting of n-gram and n-gram_dict.
@@ -214,9 +255,10 @@ class _LexicalSophisticationMeasurements:
     def word_freq_range(self, for_replacement_options=False):
         """
         Add frequency and range of a token to self._marked_up_tokens.
-        Calculates average word frequency & range.
+        Calculates average word frequency & range for all words as well as for content and functional words separately.
 
-        Returns: dict containing average frequency and range.
+        Returns: dict containing average word frequency & range for all words as well as for content and
+        functional words separately.
 
         :param bool for_replacement_options: Only marks up tokens with CEFR level without return
         """
@@ -228,9 +270,12 @@ class _LexicalSophisticationMeasurements:
             'corpora/tagged_brown', verbose=False)), calc='range'
         )
 
-        # Create lists of frequencies and ranges for calculating average values further
-        word_frequencies, word_ranges = list(), list()
-        for token in self._significant_tokens:
+        # Create lists of frequencies and ranges for all words (AW), content words (CW) and functional words (FW)
+        # to calculate average frequency and range
+        all_words_frequencies, all_words_ranges = list(), list()
+        content_words_frequencies, content_words_ranges = list(), list()
+        functional_words_frequencies, functional_words_ranges = list(), list()
+        for token in self._tokens:
             try:
                 word = f'{token.lemma_}_{token.pos_}'.lower()
                 word_freq = brown_freq[word]
@@ -238,16 +283,27 @@ class _LexicalSophisticationMeasurements:
                 self._marked_up_tokens[token]['freq'] = word_freq
                 self._marked_up_tokens[token]['range'] = word_range
 
-                word_frequencies.append(word_freq)
-                word_ranges.append(word_range)
+
+                all_words_frequencies.append(word_freq)
+                all_words_ranges.append(word_range)
+                if self._marked_up_tokens[token]['functional_word']:
+                    functional_words_frequencies.append(word_freq)
+                    functional_words_ranges.append(word_range)
+                else:
+                    content_words_frequencies.append(word_freq)
+                    content_words_ranges.append(word_range)
             except KeyError:
                 # Ignores KeyError that occurs due to the absence of a token in the corpus
                 continue
 
         if not for_replacement_options:
             measurements_dict = {
-                'Word frequency average': np.mean(word_frequencies),
-                'Word range average': np.mean(word_ranges)
+                'All words frequency': np.mean(all_words_frequencies),
+                'All words range': np.mean(all_words_ranges),
+                'Content words frequency': np.mean(content_words_frequencies),
+                'Content words range': np.mean(content_words_ranges),
+                'Functional words frequency': np.mean(functional_words_frequencies),
+                'Functional words range': np.mean(functional_words_ranges)
             }
 
             return measurements_dict
@@ -311,10 +367,10 @@ class _LexicalSophisticationMeasurements:
                 continue
 
         measurements_dict = {
-            'Bigram frequency average': np.mean(bigram_frequencies),
-            'Bigram range average': np.mean(bigram_ranges),
-            'Trigram frequency average': np.mean(trigram_frequencies),
-            'Trigram range average': np.mean(trigram_ranges)
+            'Bigram frequency': np.mean(bigram_frequencies),
+            'Bigram range': np.mean(bigram_ranges),
+            'Trigram frequency': np.mean(trigram_frequencies),
+            'Trigram range': np.mean(trigram_ranges)
         }
 
         return measurements_dict
@@ -372,14 +428,14 @@ class _LexicalSophisticationMeasurements:
                 academic_word_list.append(row.rstrip('\n'))
 
         academic_words = list()
-        for token in self._significant_tokens:
+        for token in self._content_tokens:
             if token.text in academic_word_list:
                 self._marked_up_tokens[token]['academic'] = True
                 academic_words.append(token)
 
         statistics_dict = {
             'Amount of academic words': len(academic_words),
-            'Percentage of academic words': len(academic_words) / len(self._significant_tokens)
+            'Percentage of academic words': len(academic_words) / len(self._content_tokens)
         }
 
         return statistics_dict
@@ -429,7 +485,7 @@ class _LexicalSophisticationMeasurements:
             'PROPN': None, 'PUNCT': None,
             'SPACE': None, 'SYM': None,
         }
-        for token in self._significant_tokens:
+        for token in self._content_tokens:
             if type(tags_dict[token.pos_]) is str:
                 # Some words may not be in corpus, therefore we will use try/except
                 try:
@@ -495,17 +551,18 @@ class _LexicalSophisticationMeasurements:
 
         return full_data
 
-    def get_marked_up_tokens(self, include_stopwords=True):
+    def get_marked_up_tokens(self, include_functional_words=True):
         """
         Dictionary with key of a token and value of a token_dict which represents characteristics of a token
         (stopword, frequency, range, academic, level CEFR)
 
-        :param bool include_stopwords: Whether include stopwords or not (for TokenReplacementOptions)
+        :param bool include_functional_words: Whether include stopwords or not (for TokenReplacementOptions)
         """
-        if include_stopwords:
+        if include_functional_words:
             return self._marked_up_tokens
         else:
-            return {key: value for key, value in self._marked_up_tokens.items() if value['stopword'] is False}
+            return {key: value for key, value in self._marked_up_tokens.items()
+                    if (value['functional_word'] is False) and (value['punct'] is False)}
 
 
 class _LexicalDiversityMeasurements:
@@ -523,7 +580,7 @@ class _LexicalDiversityMeasurements:
 
     def __init__(self, text):
         assert isinstance(text, _Text)
-        self._lemmatized_text = text.get_lemmas(include_insignificant=False)
+        self._lemmatized_text = text.get_lemmas(include_functional_words=False)
 
     def indexes_data(self):
         data_dict = {
@@ -570,7 +627,7 @@ class TextAnalysis:
 
         The result is vocabulary_chart.png file
         """
-        fig, ax = plt.subplots()
+        fig, ax = plt.subplots(facecolor=(0.1, 0.2, 0.5, 0))
 
         # Amount of vocabulary for each level
         amount_of_vocabulary_by_level = list(self._vocabulary_by_level_dict.values())
@@ -634,28 +691,28 @@ class TextAnalysis:
         """
         stats_dict = {'metric': list(), 'value': list()}
         stats_dict['metric'].append('TTR')
-        stats_dict['value'].append(round(self._lexical_diversity_measurements['TTR'], 1))
+        stats_dict['value'].append(round(self._lexical_diversity_measurements['TTR'], 2))
         stats_dict['metric'].append('Academic words')
-        stats_dict['value'].append(round(self._lexical_sophistication_measurements['Amount of academic words']))
+        stats_dict['value'].append(str(self._lexical_sophistication_measurements['Amount of academic words']))
         stats_dict['metric'].append('Average trigram frequency')
-        stats_dict['value'].append(round(self._lexical_sophistication_measurements['Trigram frequency average'], 1))
+        stats_dict['value'].append(round(self._lexical_sophistication_measurements['Trigram frequency'], 2))
         stats = pd.DataFrame(stats_dict)
         return stats
 
-    def get_recurring_lemmas_dataframe(self, include_insignificant=False):
+    def get_recurring_lemmas_dataframe(self, include_functional_words=False):
         """
         Returns a pandas DataFrame of lemmas which occur in a text 2 or more times
 
-        :param bool include_insignificant: Include stopwords, proper nouns, symbols, particles, adposition,
+        :param bool include_functional_words: Include stopwords, proper nouns, symbols, particles, adposition,
                                            coordinating conjunction and unknown parts of speech
         """
         recurring_lemmas_dict = {
             'Lemma': list(), 'Occurrences': list()
         }
-        if include_insignificant:
-            lemmas_occurrences = self._text.get_lemmas_occurrences(include_insignificant=True)
+        if include_functional_words:
+            lemmas_occurrences = self._text.get_lemmas_occurrences(include_functional_words=True)
         else:
-            lemmas_occurrences = self._text.get_lemmas_occurrences(include_insignificant=False)
+            lemmas_occurrences = self._text.get_lemmas_occurrences(include_functional_words=False)
 
         for lemma, occurrences in lemmas_occurrences.items():
             if occurrences >= 2:
@@ -806,7 +863,7 @@ class TokenReplacementOptions:
         lexical_sophistication.word_freq_range(for_replacement_options=True)
         # Marks up synonymic _tokens with level
         lexical_sophistication.vocabulary_by_level(for_replacement_options=True)
-        marked_up_synonyms = lexical_sophistication.get_marked_up_tokens(include_stopwords=False)
+        marked_up_synonyms = lexical_sophistication.get_marked_up_tokens(include_functional_words=False)
 
         # For now, we only imagine that we have token level, frequency and range
         token_level = self._marked_up_tokens[token]['level']

@@ -179,7 +179,7 @@ function markUpText(tokens_and_keys) {
       span.textContent = keys[i];
       span.id = tokens[keys[i]]['id'];
       span.id = i;
-      if (tokens[keys[i]]['stopword']) {
+      if (tokens[keys[i]]['functional_word'] || tokens[keys[i]]['punct']) {
         span.classList.add('no_data');
       } else {
         span.classList.add(tokenCLassFromLevel(tokens[keys[i]]['level']));
