@@ -600,27 +600,13 @@ class _LexicalSophisticationMeasurements:
 
         Returns: dictionary with data from all methods
         """
-        start_time = time.time()
         word_freq_range_data = self.word_freq_range()
-        print(f'word_freq_range {time.time() - start_time} seconds')
-        start_time = time.time()
         n_gram_freq_range_data = self.n_gram_freq_range()
-        print(f'n_gram_freq_range {time.time() - start_time} seconds')
-        start_time = time.time()
         n_gram_proportion = self.n_gram_proportion()
-        print(f'n_gram_proportion {time.time() - start_time} seconds')
-        start_time = time.time()
         n_gram_accuracy = self.n_gram_accuracy()
-        print(f'n_gram_accuracy {time.time() - start_time} seconds')
-        start_time = time.time()
         academic_vocabulary_data = self.academic_vocabulary_content()
-        print(f'academic_vocabulary {time.time() - start_time} seconds')
-        start_time = time.time()
         academic_formulas_data = self.academic_formulas_freq()
-        print(f'academic_formulas {time.time() - start_time} seconds')
-        start_time = time.time()
         vocabulary_by_level_data = self.vocabulary_by_level()
-        print(f'vocabulary_by_level {time.time() - start_time} seconds')
 
         full_data = (word_freq_range_data | n_gram_freq_range_data | n_gram_proportion | n_gram_accuracy
                      | academic_vocabulary_data | academic_formulas_data | vocabulary_by_level_data)
