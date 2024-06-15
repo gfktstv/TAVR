@@ -1,5 +1,3 @@
-import statistics
-
 import spacy
 from spacy.tokens import Doc
 from spacy_ngram import NgramComponent
@@ -7,15 +5,15 @@ from spacy_ngram import NgramComponent
 from nltk.corpus import wordnet as wn
 
 from lexical_diversity import lex_div as ld
-from corpus_toolkit import corpus_tools as ct
 
 import pandas as pd
 import numpy as np
 
-import matplotlib as mpl
 import matplotlib.pyplot as plt
 
 from scipy import stats
+
+import orjson
 
 nlp = spacy.load('en_core_web_lg')
 nlp.add_pipe('spacy-ngram')  # Pipeline for n-gram marking
@@ -77,7 +75,7 @@ class _Text:
             tokens = [token for token in self.nlp_doc if token.is_stop or (token.pos_ in banned_pos)]
 
         if include_punct and (len(tokens) == 0):
-            # For a option with only punctuational marks being returned
+            # For an option with only punctuational marks being returned
             tokens = [token for token in self.nlp_doc if token.is_punct]
         elif include_punct is False:
             tokens = [token for token in tokens if not token.is_punct]
@@ -222,7 +220,7 @@ class _LexicalSophisticationMeasurements:
         # For replacement options
         elif token_list is not None:
             assert isinstance(token_list, list)
-            doc = Doc(nlp.vocab, words=token_list, pos=[pos_tag for i in range(len(token_list))], lemmas=token_list)
+            doc = Doc(nlp.vocab, words=token_list, pos=[pos_tag for _ in range(len(token_list))], lemmas=token_list)
             banned_pos = ['PROPN', 'SYM', 'PART', 'CCONJ', 'ADP', 'X']
             self._tokens = [token for token in doc if (not token.is_punct)]
             self._content_tokens = [token for token in doc if (not token.is_stop)
@@ -270,13 +268,9 @@ class _LexicalSophisticationMeasurements:
 
         :param bool for_replacement_options: Only marks up tokens with CEFR level without return
         """
-        # Load and read tagged corpus, then tokenize (and lemmatize) it and create a frequency and range dictionary
-        brown_freq = ct.frequency(ct.tokenize(ct.ldcorpus(
-            'corpora/tagged_brown', verbose=False))
-        )
-        brown_range = ct.frequency(ct.tokenize(ct.ldcorpus(
-            'corpora/tagged_brown', verbose=False)), calc='range'
-        )
+        # Load words frequency and range from corpus
+        with open('corpora/data_in_json/brown_word_freq_range.json', 'rb') as f:
+            brown_word_freq_range = orjson.loads(f.read())
 
         # Create lists of frequencies and ranges for all words (AW), content words (CW) and functional words (FW)
         # to calculate average frequency and range
@@ -286,11 +280,9 @@ class _LexicalSophisticationMeasurements:
         for token in self._tokens:
             try:
                 word = f'{token.lemma_}_{token.pos_}'.lower()
-                word_freq = brown_freq[word]
-                word_range = brown_range[word]
+                word_freq, word_range = brown_word_freq_range[word].values()
                 self._marked_up_tokens[token]['freq'] = word_freq
                 self._marked_up_tokens[token]['range'] = word_range
-
 
                 all_words_frequencies.append(word_freq)
                 all_words_ranges.append(word_range)
@@ -324,29 +316,18 @@ class _LexicalSophisticationMeasurements:
         Returns: dict containing average frequency and range.
 
         """
-        # Create n-grams frequency and range dictionary
-        brown_bigram_freq = ct.frequency(ct.tokenize(ct.ldcorpus(
-            'corpora/brown', verbose=False), lemma=False, ngram=2)
-        )
-        brown_bigram_range = ct.frequency(ct.tokenize(ct.ldcorpus(
-            'corpora/brown', verbose=False), lemma=False, ngram=2),
-            calc='range'
-        )
-        brown_trigram_freq = ct.frequency(ct.tokenize(ct.ldcorpus(
-            'corpora/brown', verbose=False), lemma=False, ngram=3)
-        )
-        brown_trigram_range = ct.frequency(ct.tokenize(ct.ldcorpus(
-            'corpora/brown', verbose=False), lemma=False, ngram=3),
-            calc='range'
-        )
+        # Load n-grams frequency and range from corpus
+        with open('corpora/data_in_json/brown_bigram_freq_range.json', 'rb') as f:
+            brown_bigram_freq_range = orjson.loads(f.read())
+        with open('corpora/data_in_json/brown_trigram_freq_range.json', 'rb') as f:
+            brown_trigram_freq_range = orjson.loads(f.read())
 
         # Create lists of frequencies and ranges for calculating average values further
         bigram_frequencies, bigram_ranges = list(), list()
         trigram_frequencies, trigram_ranges = list(), list()
         for bigram in self._bigrams:
             try:
-                bigram_freq = brown_bigram_freq[bigram]
-                bigram_range = brown_bigram_range[bigram]
+                bigram_freq, bigram_range = brown_bigram_freq_range[bigram].values()
 
                 bigram_frequencies.append(bigram_freq)
                 bigram_ranges.append(bigram_range)
@@ -360,8 +341,7 @@ class _LexicalSophisticationMeasurements:
                 continue
         for trigram in self._trigrams:
             try:
-                trigram_freq = brown_trigram_freq[trigram]
-                trigram_range = brown_trigram_range[trigram]
+                trigram_freq, trigram_range = brown_trigram_freq_range[trigram].values()
 
                 trigram_frequencies.append(trigram_freq)
                 trigram_ranges.append(trigram_range)
@@ -424,9 +404,11 @@ class _LexicalSophisticationMeasurements:
         trigrams = list([trigram for trigram in self._trigrams if trigram in self.marked_up_n_grams.keys()])
         bigrams = list([bigram for bigram in self._bigrams if bigram in self.marked_up_n_grams.keys()])
 
-        # Create lists of bigrams and trigrams from a corpus
-        brown_bigrams = list(ct.tokenize(ct.ldcorpus('corpora/brown', verbose=False), lemma=False, ngram=2))
-        brown_trigrams = list(ct.tokenize(ct.ldcorpus('corpora/brown', verbose=False), lemma=False, ngram=3))
+        # Load lists of bigrams and trigrams from a corpus
+        with open('corpora/data_in_json/brown_bigrams.json', 'rb') as f:
+            brown_bigrams = orjson.loads(f.read())
+        with open('corpora/data_in_json/brown_trigrams.json', 'rb') as f:
+            brown_trigrams = orjson.loads(f.read())
 
         # Create lists of bigrams and trigrams normalized frequency from an essay and from a corpus
         bigrams_normalized_frequency_essay = list()
@@ -540,24 +522,9 @@ class _LexicalSophisticationMeasurements:
 
         :param bool for_replacement_options: Only marks up tokens with CEFR level without return
         """
-        levels = {
-            2: 'A1', 3: 'A2', 4: 'B1', 5: 'B2', 6: 'C1'
-        }
-        efllex_corpus = pd.read_csv(
-            'corpora/EFLLex_NLP4J',
-            delimiter='\\t',
-            engine='python'
-        )
-        tokens_with_CEFR_level_corpus = dict()
-        for i in range(len(efllex_corpus.iloc[:, 0])):
-            for level in [2, 3, 4, 5, 6]:
-                level_frequency = efllex_corpus.iloc[i, level]
-                if level_frequency > 0:  # Selects first level where the token appears
-                    # The key in dictionary is tuple with token lemma, and it's part of speech tag,
-                    # the value is its level
-                    lemma_and_pos = (efllex_corpus.iloc[i, 0], efllex_corpus.iloc[i, 1])
-                    tokens_with_CEFR_level_corpus[lemma_and_pos] = levels[level]
-                    break
+        # Load EFLLex corpus
+        with open('corpora/data_in_json/tokens_with_CEFR_level_efllex.json', 'rb') as f:
+            tokens_with_CEFR_level_corpus = orjson.loads(f.read())
 
         tokens_by_CEFR_level = {
             'A1': list(), 'A2': list(),
@@ -582,7 +549,7 @@ class _LexicalSophisticationMeasurements:
             if type(tags_dict[token.pos_]) is str:
                 # Some words may not be in corpus, therefore we will use try/except
                 try:
-                    level = tokens_with_CEFR_level_corpus[(token.lemma_, tags_dict[token.pos_])]
+                    level = tokens_with_CEFR_level_corpus[f'{token.lemma_}_{tags_dict[token.pos_]}']
                     tokens_by_CEFR_level[level].append(token)
                     self._marked_up_tokens[token]['level'] = level
                 except KeyError:
@@ -592,7 +559,7 @@ class _LexicalSophisticationMeasurements:
             elif type(tags_dict[token.pos_]) is list:
                 for tag_option in tags_dict[token.pos_]:
                     try:
-                        level = tokens_with_CEFR_level_corpus[(token.lemma_, tag_option)]
+                        level = tokens_with_CEFR_level_corpus[f'{token.lemma_}_{tag_option}']
                         tokens_by_CEFR_level[level].append(token)
                         self._marked_up_tokens[token]['level'] = level
                     except KeyError:
@@ -633,15 +600,29 @@ class _LexicalSophisticationMeasurements:
 
         Returns: dictionary with data from all methods
         """
+        start_time = time.time()
         word_freq_range_data = self.word_freq_range()
+        print(f'word_freq_range {time.time() - start_time} seconds')
+        start_time = time.time()
         n_gram_freq_range_data = self.n_gram_freq_range()
+        print(f'n_gram_freq_range {time.time() - start_time} seconds')
+        start_time = time.time()
         n_gram_proportion = self.n_gram_proportion()
+        print(f'n_gram_proportion {time.time() - start_time} seconds')
+        start_time = time.time()
         n_gram_accuracy = self.n_gram_accuracy()
+        print(f'n_gram_accuracy {time.time() - start_time} seconds')
+        start_time = time.time()
         academic_vocabulary_data = self.academic_vocabulary_content()
+        print(f'academic_vocabulary {time.time() - start_time} seconds')
+        start_time = time.time()
         academic_formulas_data = self.academic_formulas_freq()
+        print(f'academic_formulas {time.time() - start_time} seconds')
+        start_time = time.time()
         vocabulary_by_level_data = self.vocabulary_by_level()
+        print(f'vocabulary_by_level {time.time() - start_time} seconds')
 
-        full_data = (word_freq_range_data | n_gram_freq_range_data | n_gram_proportion | n_gram_accuracy \
+        full_data = (word_freq_range_data | n_gram_freq_range_data | n_gram_proportion | n_gram_accuracy
                      | academic_vocabulary_data | academic_formulas_data | vocabulary_by_level_data)
 
         return full_data
@@ -983,4 +964,3 @@ class TokenReplacementOptions:
         else:
             replacements = [synonym_set[0] for synonym_set in synonyms_sorted_by_level]
         return replacements[0:2]
-
