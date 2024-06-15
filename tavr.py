@@ -15,6 +15,8 @@ import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 
+from scipy import stats
+
 nlp = spacy.load('en_core_web_lg')
 nlp.add_pipe('spacy-ngram')  # Pipeline for n-gram marking
 
@@ -184,6 +186,8 @@ class _LexicalSophisticationMeasurements:
     Methods:
         word_freq_range
         n_gram_freq_range
+        n_gram_proportion
+        n_gram_accuracy
         academic_formulas_freq
         academic_vocabulary_content
         vocabulary_by_level
@@ -249,6 +253,10 @@ class _LexicalSophisticationMeasurements:
         # Dictionary includes academic formulas marked with frequency and occurrences in a text as well
         self.marked_up_n_grams = dict()
 
+        # Lists consisting of bigrams and trigrams which are unrecognized in corpus. Used for n-gram proportion
+        self._unrecognized_bigrams = list()
+        self._unrecognized_trigrams = list()
+
         # Dictionary with keys as CEFR levels (A1, A2, B1, etc.) and appropriate amount of _tokens in a text
         self.vocabulary_by_level_dict = dict()
 
@@ -310,14 +318,10 @@ class _LexicalSophisticationMeasurements:
 
     def n_gram_freq_range(self):
         """
-        Create lists with bi-, _trigrams and its frequency & range.
-        Calculates average bi-, _trigrams frequency & range.
+        Create lists with bi-, trigrams and its frequency & range.
+        Calculates average bi-, trigrams frequency & range.
 
-        Returns:
-            1) dict containing average frequency and range,
-            2) list of _bigrams marked with frequency and range,
-            3) list of _trigrams marked with frequency and range.
-
+        Returns: dict containing average frequency and range.
 
         """
         # Create n-grams frequency and range dictionary
@@ -351,6 +355,8 @@ class _LexicalSophisticationMeasurements:
                 self.marked_up_n_grams[bigram] = {'freq': bigram_freq, 'range': bigram_range, 'academic': False,
                                                   'len': 2}
             except KeyError:
+                # Unrecognized bigrams for bigram proportion
+                self._unrecognized_bigrams.append(bigram)
                 continue
         for trigram in self._trigrams:
             try:
@@ -364,6 +370,8 @@ class _LexicalSophisticationMeasurements:
                 self.marked_up_n_grams[trigram] = {'freq': trigram_freq, 'range': trigram_range, 'academic': False,
                                                    'len': 3}
             except KeyError:
+                # Unrecognized trigrams for trigram proportion
+                self._unrecognized_trigrams.append(trigram)
                 continue
 
         measurements_dict = {
@@ -371,6 +379,90 @@ class _LexicalSophisticationMeasurements:
             'Bigram range': np.mean(bigram_ranges),
             'Trigram frequency': np.mean(trigram_frequencies),
             'Trigram range': np.mean(trigram_ranges)
+        }
+
+        return measurements_dict
+
+    def n_gram_proportion(self):
+        """
+        Proportion is unrecognized (not found in corpus) n-grams to all n-grams ratio.
+
+        Returns: dict with bigram and trigram proportion.
+
+        """
+        # Check if n-grams are not marked up
+        if len(self.marked_up_n_grams) == 0:
+            self.n_gram_freq_range()
+
+        measurements_dict = {
+            'Bigram proportion': len(self._unrecognized_bigrams) / len(self._bigrams),
+            'Trigram proportion': len(self._unrecognized_trigrams) / len(self._trigrams)
+        }
+
+        return measurements_dict
+
+    def n_gram_accuracy(self):
+        """
+        Accuracy is a correlation between bigrams/trigrams normalized frequency in an essay and
+        bigrams/trigrams normalized frequency in a corpus. It should be noted that we consider only bigrams and trigrams
+        which are represented both in an essay and a corpus.
+
+        By bigram/trigram normalized frequency in an essay we mean  number of occurrences divided by
+        number of all bigrams/trigrams respectfully. The same for bigram/trigram normalized frequency in corpus.
+
+        Therefore, by calculating bigram and trigram accuracy we want to know how similar n-gram using in an essay
+        comparing to using in corpus.
+
+        Returns: dict with bigram and trigram accuracy.
+
+        """
+        # Check if n-grams are not marked up
+        if len(self.marked_up_n_grams) == 0:
+            self.n_gram_freq_range()
+
+        # Create lists of bigrams and trigrams from an essay which are represented in corpus
+        trigrams = list([trigram for trigram in self._trigrams if trigram in self.marked_up_n_grams.keys()])
+        bigrams = list([bigram for bigram in self._bigrams if bigram in self.marked_up_n_grams.keys()])
+
+        # Create lists of bigrams and trigrams from a corpus
+        brown_bigrams = list(ct.tokenize(ct.ldcorpus('corpora/brown', verbose=False), lemma=False, ngram=2))
+        brown_trigrams = list(ct.tokenize(ct.ldcorpus('corpora/brown', verbose=False), lemma=False, ngram=3))
+
+        # Create lists of bigrams and trigrams normalized frequency from an essay and from a corpus
+        bigrams_normalized_frequency_essay = list()
+        bigrams_normalized_frequency_corpus = list()
+        trigrams_normalized_frequency_essay = list()
+        trigrams_normalized_frequency_corpus = list()
+        for n_gram, n_gram_dict in self.marked_up_n_grams.items():
+            if n_gram_dict['len'] == 2:
+                normalized_frequency = bigrams.count(n_gram) / len(bigrams)
+                bigrams_normalized_frequency_essay.append(normalized_frequency)
+
+                normalized_frequency = n_gram_dict['freq'] / len(brown_bigrams)
+                bigrams_normalized_frequency_corpus.append(normalized_frequency)
+            else:
+                normalized_frequency = trigrams.count(n_gram) / len(trigrams)
+                trigrams_normalized_frequency_essay.append(normalized_frequency)
+
+                normalized_frequency = n_gram_dict['freq'] / len(brown_trigrams)
+                trigrams_normalized_frequency_corpus.append(normalized_frequency)
+
+        # Calculate correlation (accuracy)
+        bigram_accuracy, bigram_p = stats.pearsonr(
+            bigrams_normalized_frequency_corpus, bigrams_normalized_frequency_essay
+        )
+        trigram_accuracy, trigram_p = stats.pearsonr(
+            trigrams_normalized_frequency_corpus, trigrams_normalized_frequency_essay
+        )
+
+        if np.isnan(bigram_accuracy):
+            bigram_accuracy = 0
+        if np.isnan(trigram_accuracy):
+            trigram_accuracy = 0
+
+        measurements_dict = {
+            'Bigram accuracy': bigram_accuracy,
+            'Trigram accuracy': trigram_accuracy
         }
 
         return measurements_dict
@@ -485,6 +577,7 @@ class _LexicalSophisticationMeasurements:
             'PROPN': None, 'PUNCT': None,
             'SPACE': None, 'SYM': None,
         }
+
         for token in self._content_tokens:
             if type(tags_dict[token.pos_]) is str:
                 # Some words may not be in corpus, therefore we will use try/except
@@ -542,12 +635,14 @@ class _LexicalSophisticationMeasurements:
         """
         word_freq_range_data = self.word_freq_range()
         n_gram_freq_range_data = self.n_gram_freq_range()
+        n_gram_proportion = self.n_gram_proportion()
+        n_gram_accuracy = self.n_gram_accuracy()
         academic_vocabulary_data = self.academic_vocabulary_content()
         academic_formulas_data = self.academic_formulas_freq()
         vocabulary_by_level_data = self.vocabulary_by_level()
 
-        full_data = word_freq_range_data | n_gram_freq_range_data | academic_vocabulary_data \
-                    | academic_formulas_data | vocabulary_by_level_data
+        full_data = (word_freq_range_data | n_gram_freq_range_data | n_gram_proportion | n_gram_accuracy \
+                     | academic_vocabulary_data | academic_formulas_data | vocabulary_by_level_data)
 
         return full_data
 
@@ -567,14 +662,14 @@ class _LexicalSophisticationMeasurements:
 
 class _LexicalDiversityMeasurements:
     """
-    Class measures lexical diversity using TTR, MTLD and MTLD MA Wrap (MTLD-W) indexes.
+    Class measures lexical diversity using TTR, MTLD and MTLD MA Wrap (MTLD-W) indices.
     Returns a dictionary with measurements.
 
     Arguments:
         text (_Text): instance of class _Text
 
     Methods:
-        indexes_data
+        indices_data
 
     """
 
@@ -582,9 +677,13 @@ class _LexicalDiversityMeasurements:
         assert isinstance(text, _Text)
         self._lemmatized_text = text.get_lemmas(include_functional_words=False)
 
-    def indexes_data(self):
+    def indices_data(self):
         data_dict = {
             'TTR': ld.ttr(self._lemmatized_text),
+            'Root TTR': ld.root_ttr(self._lemmatized_text),
+            'Log TTR': ld.log_ttr(self._lemmatized_text),
+            'Maas TTR': ld.maas_ttr(self._lemmatized_text),
+            'D': ld.hdd(self._lemmatized_text),
             'MTLD': ld.mtld(self._lemmatized_text),
             'MTLD MA Wrap': ld.mtld_ma_wrap(self._lemmatized_text)
         }
@@ -598,7 +697,7 @@ class TokensAreNotRecognized(Exception):
 class TextAnalysis:
     """
     Analysis of a given essay by lexical diversity and lexical sophistication.
-    Provides tables with trigrams with the biggest frequency/range, lexical diversity indexes data, academic formulas
+    Provides tables with trigrams with the biggest frequency/range, lexical diversity indices data, academic formulas
     and a pie chart with the CEFR levels (A1, A2, B1, etc.) and appropriate number of words from a given essay.
 
     Arguments:
@@ -616,7 +715,7 @@ class TextAnalysis:
         self._lex_sop = _LexicalSophisticationMeasurements(self._text)
 
         self._lexical_sophistication_measurements = self._lex_sop.get_full_data()
-        self._lexical_diversity_measurements = self._lex_div.indexes_data()
+        self._lexical_diversity_measurements = self._lex_div.indices_data()
         self._marked_up_tokens = self._lex_sop.get_marked_up_tokens()
         self._marked_up_n_grams = self._lex_sop.marked_up_n_grams
         self._vocabulary_by_level_dict = self._lex_sop.vocabulary_by_level_dict
@@ -685,7 +784,7 @@ class TextAnalysis:
 
     def get_stats_dataframe(self):
         """
-        Creates a csv table with data from indexes and percentage of academic words.
+        Creates a csv table with data from indices and percentage of academic words.
 
         Returns a csv table
         """
@@ -742,7 +841,7 @@ class TextAnalysis:
 
     def _get_data_for_web(self):
         """
-        Returns table with the most frequent trigrams, stats (indexes and other information), academic formulas
+        Returns table with the most frequent trigrams, stats (indices and other information), academic formulas
         and saves vocabulary_chart.png
         """
         trigrams = self.get_trigrams_dataframe()
