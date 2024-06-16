@@ -1,3 +1,5 @@
+from typing import Dict, List, Any
+
 import spacy
 from spacy.tokens import Doc
 from spacy_ngram import NgramComponent
@@ -183,6 +185,7 @@ class _LexicalSophisticationMeasurements:
 
     Methods:
         word_freq_range
+        word_information
         n_gram_freq_range
         n_gram_proportion
         n_gram_accuracy
@@ -274,9 +277,9 @@ class _LexicalSophisticationMeasurements:
 
         # Create lists of frequencies and ranges for all words (AW), content words (CW) and functional words (FW)
         # to calculate average frequency and range
-        all_words_frequencies, all_words_ranges = list(), list()
-        content_words_frequencies, content_words_ranges = list(), list()
-        functional_words_frequencies, functional_words_ranges = list(), list()
+        aw_freqs, aw_ranges = list(), list()
+        cw_freqs, cw_ranges = list(), list()
+        fw_freqs, fw_ranges = list(), list()
         for token in self._tokens:
             try:
                 word = f'{token.lemma_}_{token.pos_}'.lower()
@@ -284,29 +287,105 @@ class _LexicalSophisticationMeasurements:
                 self._marked_up_tokens[token]['freq'] = word_freq
                 self._marked_up_tokens[token]['range'] = word_range
 
-                all_words_frequencies.append(word_freq)
-                all_words_ranges.append(word_range)
+                aw_freqs.append(word_freq)
+                aw_ranges.append(word_range)
                 if self._marked_up_tokens[token]['functional_word']:
-                    functional_words_frequencies.append(word_freq)
-                    functional_words_ranges.append(word_range)
+                    fw_freqs.append(word_freq)
+                    fw_ranges.append(word_range)
                 else:
-                    content_words_frequencies.append(word_freq)
-                    content_words_ranges.append(word_range)
+                    cw_freqs.append(word_freq)
+                    cw_ranges.append(word_range)
             except KeyError:
                 # Ignores KeyError that occurs due to the absence of a token in the corpus
                 continue
 
         if not for_replacement_options:
             measurements_dict = {
-                'All words frequency': np.mean(all_words_frequencies),
-                'All words range': np.mean(all_words_ranges),
-                'Content words frequency': np.mean(content_words_frequencies),
-                'Content words range': np.mean(content_words_ranges),
-                'Functional words frequency': np.mean(functional_words_frequencies),
-                'Functional words range': np.mean(functional_words_ranges)
+                'All words frequency': np.mean(aw_freqs),
+                'Content words frequency': np.mean(cw_freqs),
+                'Functional words frequency': np.mean(fw_freqs),
+                'All words range': np.mean(aw_ranges),
+                'Content words range': np.mean(cw_ranges),
+                'Functional words range': np.mean(fw_ranges)
             }
 
             return measurements_dict
+
+    def word_information(self):
+        """
+        Calculates average of word information scores such as familiarity, concreteness, imageability, meaningfulness,
+        and age of acquisition using MRC psycholinguistic database.
+
+        Returns: a dict of average familiarity, concreteness, imageability, meaningfulness by colorado and paivio norms,
+        and age of acquisition
+        """
+        # Load mrc psycholinguistic database with required information
+        with open('corpora/data_in_json/mrc_psycholinguistics.json', 'r') as f:
+            mrc = orjson.loads(f.read())
+
+        # Create dict of word as a key and word information dict as a value for all words (AW), content words (CW),
+        # and functional words (FW)
+        aw_inf_dict = dict()
+        cw_inf_dict = dict()
+        fw_inf_dict = dict()
+
+        # Fill dictionaries with word information from MRC
+        for token, token_dict in self._marked_up_tokens.items():
+            tags_dict = {
+                'ADJ': 'J', 'ADP': 'O',
+                'ADV': 'O', 'AUX': 'O',
+                'CCONJ': 'O', 'DET': 'O',
+                'INTJ': 'O', 'NOUN': 'N',
+                'NUM': 'O', 'PART': 'O',
+                'PRON': 'O', 'SCONJ': 'O',
+                'VERB': 'V', 'X': 'O',
+                'PROPN': 'O', 'PUNCT': 'O',
+                'SPACE': 'O', 'SYM': 'O',
+            }
+            # Create key to MRC
+            word = f'{token.lemma_.upper()}_{tags_dict[token.pos_]}'
+            # Fill word information for all words
+            try:
+                aw_inf_dict[word] = mrc[word]
+            except KeyError:
+                # Ignore if token not in MRC
+                continue
+            # Fill word information for functional and content words
+            if token_dict['functional_word']:
+                try:
+                    fw_inf_dict[word] = mrc[word]
+                except KeyError:
+                    # Ignore if token not in MRC
+                    continue
+            else:
+                try:
+                    cw_inf_dict[word] = mrc[word]
+                except KeyError:
+                    # Ignore if token not in MRC
+                    continue
+
+        # Based on dictionaries with words and their information create dictionaries of word information scores
+        aw_scores_dict = dict()
+        cw_scores_dict = dict()
+        fw_scores_dict = dict()
+        for score in ['familiarity', 'concreteness', 'imageability', 'age_of_acquisition',
+                      'meaningfulness_colorado', 'meaningfulness_paivio']:
+            aw_scores_dict[score] = [word_dict[score] for word, word_dict in aw_inf_dict.items()]
+            cw_scores_dict[score] = [word_dict[score] for word, word_dict in cw_inf_dict.items()]
+            fw_scores_dict[score] = [word_dict[score] for word, word_dict in fw_inf_dict.items()]
+
+        # Fill mean score for each score type in intermediate_measurements_dict and then merge it in measurements_dict
+        measurements_dict = dict()
+        for score in ['familiarity', 'concreteness', 'imageability', 'age_of_acquisition',
+                      'meaningfulness_colorado', 'meaningfulness_paivio']:
+            intermediate_measurements_dict = {
+                f'All words {score.replace('_', ' ')}': np.mean(aw_scores_dict[score]),
+                f'Content words {score.replace('_', ' ')}': np.mean(cw_scores_dict[score]),
+                f'Functional words {score.replace('_', ' ')}': np.mean(fw_scores_dict[score]),
+            }
+            measurements_dict = measurements_dict | intermediate_measurements_dict
+
+        return measurements_dict
 
     def n_gram_freq_range(self):
         """
@@ -601,6 +680,7 @@ class _LexicalSophisticationMeasurements:
         Returns: dictionary with data from all methods
         """
         word_freq_range_data = self.word_freq_range()
+        word_information = self.word_information()
         n_gram_freq_range_data = self.n_gram_freq_range()
         n_gram_proportion = self.n_gram_proportion()
         n_gram_accuracy = self.n_gram_accuracy()
@@ -608,8 +688,8 @@ class _LexicalSophisticationMeasurements:
         academic_formulas_data = self.academic_formulas_freq()
         vocabulary_by_level_data = self.vocabulary_by_level()
 
-        full_data = (word_freq_range_data | n_gram_freq_range_data | n_gram_proportion | n_gram_accuracy
-                     | academic_vocabulary_data | academic_formulas_data | vocabulary_by_level_data)
+        full_data = (word_freq_range_data | word_information | n_gram_freq_range_data | n_gram_proportion |
+                     n_gram_accuracy | academic_vocabulary_data | academic_formulas_data | vocabulary_by_level_data)
 
         return full_data
 
