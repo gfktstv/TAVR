@@ -1,5 +1,3 @@
-from typing import Dict, List, Any
-
 import spacy
 from spacy.tokens import Doc
 from spacy_ngram import NgramComponent
@@ -16,6 +14,8 @@ import matplotlib.pyplot as plt
 from scipy import stats
 
 import orjson
+
+import os
 
 nlp = spacy.load('en_core_web_lg')
 nlp.add_pipe('spacy-ngram')  # Pipeline for n-gram marking
@@ -237,11 +237,16 @@ class _LexicalSophisticationMeasurements:
         for token in self._tokens:
             if token in self._functional_tokens:
                 self._marked_up_tokens[token] = {
-                    'punct': False, 'functional_word': True, 'id': self._tokens.index(token)
+                    'punct': False, 'functional_word': True,
+                    'concreteness': None, 'familiarity': None, 'imageability': None,
+                    'age_of_acquisition': None, 'meaningfulness_colorado': None, 'meaningfulness_paivio': None,
+                    'id': self._tokens.index(token)
                 }
             elif token in self._content_tokens:
                 self._marked_up_tokens[token] = {
                     'punct': False, 'functional_word': False, 'freq': 0, 'range': 0,
+                    'concreteness': None, 'familiarity': None, 'imageability': None,
+                    'age_of_acquisition': None, 'meaningfulness_colorado': None, 'meaningfulness_paivio': None,
                     'academic': bool(), 'level': None, 'id': self._tokens.index(token)
                 }
             else:
@@ -261,6 +266,10 @@ class _LexicalSophisticationMeasurements:
         # Dictionary with keys as CEFR levels (A1, A2, B1, etc.) and appropriate amount of _tokens in a text
         self.vocabulary_by_level_dict = dict()
 
+        # Path to directory with json files
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        self.data_in_json_dir_path = os.path.join(current_dir, 'corpora/data_in_json')
+
     def word_freq_range(self, for_replacement_options=False):
         """
         Add frequency and range of a token to self._marked_up_tokens.
@@ -272,7 +281,7 @@ class _LexicalSophisticationMeasurements:
         :param bool for_replacement_options: Only marks up tokens with CEFR level without return
         """
         # Load words frequency and range from corpus
-        with open('corpora/data_in_json/brown_word_freq_range.json', 'rb') as f:
+        with open(os.path.join(self.data_in_json_dir_path, 'brown_word_freq_range.json'), 'rb') as f:
             brown_word_freq_range = orjson.loads(f.read())
 
         # Create lists of frequencies and ranges for all words (AW), content words (CW) and functional words (FW)
@@ -306,7 +315,7 @@ class _LexicalSophisticationMeasurements:
                 'Functional words frequency': np.mean(fw_freqs),
                 'All words range': np.mean(aw_ranges),
                 'Content words range': np.mean(cw_ranges),
-                'Functional words range': np.mean(fw_ranges)
+                'Functional words range': np.mean(fw_ranges),
             }
 
             return measurements_dict
@@ -314,78 +323,90 @@ class _LexicalSophisticationMeasurements:
     def word_information(self):
         """
         Calculates average of word information scores such as familiarity, concreteness, imageability, meaningfulness,
-        and age of acquisition using MRC psycholinguistic database.
+        and age of acquisition using MRC psycholinguistic database. It should be noted that words which are not in
+        MRC database are not considered in calculating average
 
         Returns: a dict of average familiarity, concreteness, imageability, meaningfulness by colorado and paivio norms,
         and age of acquisition
         """
         # Load mrc psycholinguistic database with required information
-        with open('corpora/data_in_json/mrc_psycholinguistics.json', 'r') as f:
+        with open(os.path.join(self.data_in_json_dir_path, 'mrc_psycholinguistics.json'), 'rb') as f:
             mrc = orjson.loads(f.read())
 
-        # Create dict of word as a key and word information dict as a value for all words (AW), content words (CW),
-        # and functional words (FW)
-        aw_inf_dict = dict()
-        cw_inf_dict = dict()
-        fw_inf_dict = dict()
+            # Create dict of word as a key and word information dict as a value for all words (AW), content words (CW),
+            # and functional words (FW)
+            aw_inf_dict = dict()
+            cw_inf_dict = dict()
+            fw_inf_dict = dict()
 
-        # Fill dictionaries with word information from MRC
-        for token, token_dict in self._marked_up_tokens.items():
-            tags_dict = {
-                'ADJ': 'J', 'ADP': 'O',
-                'ADV': 'O', 'AUX': 'O',
-                'CCONJ': 'O', 'DET': 'O',
-                'INTJ': 'O', 'NOUN': 'N',
-                'NUM': 'O', 'PART': 'O',
-                'PRON': 'O', 'SCONJ': 'O',
-                'VERB': 'V', 'X': 'O',
-                'PROPN': 'O', 'PUNCT': 'O',
-                'SPACE': 'O', 'SYM': 'O',
-            }
-            # Create key to MRC
-            word = f'{token.lemma_.upper()}_{tags_dict[token.pos_]}'
-            # Fill word information for all words
-            try:
-                aw_inf_dict[word] = mrc[word]
-            except KeyError:
-                # Ignore if token not in MRC
-                continue
-            # Fill word information for functional and content words
-            if token_dict['functional_word']:
+            # Fill dictionaries with word information from MRC
+            for token, token_dict in self._marked_up_tokens.items():
+                tags_dict = {
+                    'ADJ': 'J', 'ADP': 'O',
+                    'ADV': 'O', 'AUX': 'O',
+                    'CCONJ': 'O', 'DET': 'O',
+                    'INTJ': 'O', 'NOUN': 'N',
+                    'NUM': 'O', 'PART': 'O',
+                    'PRON': 'O', 'SCONJ': 'O',
+                    'VERB': 'V', 'X': 'O',
+                    'PROPN': 'O', 'PUNCT': 'O',
+                    'SPACE': 'O', 'SYM': 'O',
+                }
+                # Create key to MRC
+                word = f'{token.lemma_}_{tags_dict[token.pos_]}'.upper()
+                # Fill word information for all words
                 try:
-                    fw_inf_dict[word] = mrc[word]
+                    aw_inf_dict[word] = mrc[word]
                 except KeyError:
                     # Ignore if token not in MRC
                     continue
-            else:
-                try:
-                    cw_inf_dict[word] = mrc[word]
-                except KeyError:
-                    # Ignore if token not in MRC
-                    continue
+                # Fill word information for functional and content words
+                if token_dict['functional_word']:
+                    try:
+                        fw_inf_dict[word] = mrc[word]
+                    except KeyError:
+                        # Ignore if token not in MRC
+                        continue
+                else:
+                    try:
+                        cw_inf_dict[word] = mrc[word]
+                    except KeyError:
+                        # Ignore if token not in MRC
+                        continue
 
-        # Based on dictionaries with words and their information create dictionaries of word information scores
-        aw_scores_dict = dict()
-        cw_scores_dict = dict()
-        fw_scores_dict = dict()
-        for score in ['familiarity', 'concreteness', 'imageability', 'age_of_acquisition',
-                      'meaningfulness_colorado', 'meaningfulness_paivio']:
-            aw_scores_dict[score] = [word_dict[score] for word, word_dict in aw_inf_dict.items()]
-            cw_scores_dict[score] = [word_dict[score] for word, word_dict in cw_inf_dict.items()]
-            fw_scores_dict[score] = [word_dict[score] for word, word_dict in fw_inf_dict.items()]
+                # Mark up tokens with psycholinguistic information
+                for token, token_dict in self._marked_up_tokens.items():
+                    if not token_dict['punct']:
+                        for score in ['familiarity', 'concreteness', 'imageability', 'age_of_acquisition',
+                                      'meaningfulness_colorado', 'meaningfulness_paivio']:
+                            try:
+                                self._marked_up_tokens[token][score] = mrc[word][score]
+                            except KeyError:
+                                continue
 
-        # Fill mean score for each score type in intermediate_measurements_dict and then merge it in measurements_dict
-        measurements_dict = dict()
-        for score in ['familiarity', 'concreteness', 'imageability', 'age_of_acquisition',
-                      'meaningfulness_colorado', 'meaningfulness_paivio']:
-            intermediate_measurements_dict = {
-                f'All words {score.replace('_', ' ')}': np.mean(aw_scores_dict[score]),
-                f'Content words {score.replace('_', ' ')}': np.mean(cw_scores_dict[score]),
-                f'Functional words {score.replace('_', ' ')}': np.mean(fw_scores_dict[score]),
-            }
-            measurements_dict = measurements_dict | intermediate_measurements_dict
+            # Based on dictionaries with words and their information create dictionaries of word information scores
+            aw_scores_dict = dict()
+            cw_scores_dict = dict()
+            fw_scores_dict = dict()
+            for score in ['familiarity', 'concreteness', 'imageability', 'age_of_acquisition',
+                          'meaningfulness_colorado', 'meaningfulness_paivio']:
+                aw_scores_dict[score] = [word_dict[score] for word, word_dict in aw_inf_dict.items()]
+                cw_scores_dict[score] = [word_dict[score] for word, word_dict in cw_inf_dict.items()]
+                fw_scores_dict[score] = [word_dict[score] for word, word_dict in fw_inf_dict.items()]
 
-        return measurements_dict
+            # Fill mean score for each score type in intermediate_measurements_dict
+            # and then merge it in measurements_dict
+            measurements_dict = dict()
+            for score in ['familiarity', 'concreteness', 'imageability', 'age_of_acquisition',
+                          'meaningfulness_colorado', 'meaningfulness_paivio']:
+                intermediate_measurements_dict = {
+                    f'All words {score.replace('_', ' ')}': np.mean(aw_scores_dict[score]),
+                    f'Content words {score.replace('_', ' ')}': np.mean(cw_scores_dict[score]),
+                    f'Functional words {score.replace('_', ' ')}': np.mean(fw_scores_dict[score]),
+                }
+                measurements_dict = measurements_dict | intermediate_measurements_dict
+
+            return measurements_dict
 
     def n_gram_freq_range(self):
         """
@@ -396,9 +417,9 @@ class _LexicalSophisticationMeasurements:
 
         """
         # Load n-grams frequency and range from corpus
-        with open('corpora/data_in_json/brown_bigram_freq_range.json', 'rb') as f:
+        with open(os.path.join(self.data_in_json_dir_path, 'brown_bigram_freq_range.json'), 'rb') as f:
             brown_bigram_freq_range = orjson.loads(f.read())
-        with open('corpora/data_in_json/brown_trigram_freq_range.json', 'rb') as f:
+        with open(os.path.join(self.data_in_json_dir_path, 'brown_trigram_freq_range.json'), 'rb') as f:
             brown_trigram_freq_range = orjson.loads(f.read())
 
         # Create lists of frequencies and ranges for calculating average values further
@@ -484,9 +505,9 @@ class _LexicalSophisticationMeasurements:
         bigrams = list([bigram for bigram in self._bigrams if bigram in self.marked_up_n_grams.keys()])
 
         # Load lists of bigrams and trigrams from a corpus
-        with open('corpora/data_in_json/brown_bigrams.json', 'rb') as f:
+        with open(os.path.join(self.data_in_json_dir_path, 'brown_bigrams.json'), 'rb') as f:
             brown_bigrams = orjson.loads(f.read())
-        with open('corpora/data_in_json/brown_trigrams.json', 'rb') as f:
+        with open(os.path.join(self.data_in_json_dir_path, 'brown_trigrams.json'), 'rb') as f:
             brown_trigrams = orjson.loads(f.read())
 
         # Create lists of bigrams and trigrams normalized frequency from an essay and from a corpus
@@ -538,11 +559,9 @@ class _LexicalSophisticationMeasurements:
             2) dict containing average frequency.
 
         """
-        # Converts AFL csv to list
-        AFL_csv = pd.read_csv('corpora/AFL.csv')
-        academic_formulas_list = [
-            [record['Formula'], record['Frequency per million']] for record in AFL_csv.to_dict('records')
-        ]
+        # Open academic formulas list in json
+        with open(os.path.join(self.data_in_json_dir_path, 'afl.json'), 'rb') as f:
+            academic_formulas_list = orjson.loads(f.read())
 
         frequencies = 0
         occurrences = 0
@@ -575,10 +594,9 @@ class _LexicalSophisticationMeasurements:
         Returns: dictionary with amount of academic words and their percentage of the text.
 
         """
-        academic_word_list = list()
-        with open('corpora/AWL.txt', 'r') as file:
-            for row in file:
-                academic_word_list.append(row.rstrip('\n'))
+        # Open academic word list in json
+        with open(os.path.join(self.data_in_json_dir_path, 'awl.json'), 'rb') as f:
+            academic_word_list = orjson.loads(f.read())
 
         academic_words = list()
         for token in self._content_tokens:
@@ -602,7 +620,7 @@ class _LexicalSophisticationMeasurements:
         :param bool for_replacement_options: Only marks up tokens with CEFR level without return
         """
         # Load EFLLex corpus
-        with open('corpora/data_in_json/tokens_with_CEFR_level_efllex.json', 'rb') as f:
+        with open(os.path.join(self.data_in_json_dir_path, 'tokens_with_CEFR_level_efllex.json'), 'rb') as f:
             tokens_with_CEFR_level_corpus = orjson.loads(f.read())
 
         tokens_by_CEFR_level = {
@@ -658,17 +676,20 @@ class _LexicalSophisticationMeasurements:
         }
 
         level_weight = {
-            'A1': 1, 'A2': 1, 'B1': 2, 'B2': 4, 'C1': 8, 'C2': 16
+            'A1': 9.8245136, 'A2': 15.03967718, 'B1': 44.12832192,
+            'B2': -25.11806657, 'C1': 50.84860667, 'C2': -27.24657368
         }
 
         vocabulary_metric = list()
-        for level in tokens_by_CEFR_level.keys():
-            for i in range(self.vocabulary_by_level_dict[f'{level} words']):
-                vocabulary_metric.append(i * level_weight[level])
+        # for level in tokens_by_CEFR_level.keys():
+        #     for i in range(self.vocabulary_by_level_dict[f'{level} words']):
+        #         vocabulary_metric.append(i * level_weight[level])
+        for level in level_weight.keys():
+            vocabulary_metric.append(self.vocabulary_by_level_dict[f'{level} words'] * level_weight[level])
 
         if not for_replacement_options:
             vocabulary_metric_dict = {
-                'Vocabulary': np.mean(vocabulary_metric)
+                'Vocabulary': np.sum(vocabulary_metric)
             }
 
             return vocabulary_metric_dict
@@ -1026,7 +1047,8 @@ class TokenReplacementOptions:
         # Sorts synonyms by level
         synonyms_sorted_by_level = sorted(synonyms.items(), key=lambda x: x[1]['level'], reverse=True)
         if return_token_text:
-            replacements = [synonym_set[0].text for synonym_set in synonyms_sorted_by_level]
+            # Also replace _ with space
+            replacements = [synonym_set[0].text.replace('_', ' ') for synonym_set in synonyms_sorted_by_level]
         else:
             replacements = [synonym_set[0] for synonym_set in synonyms_sorted_by_level]
         return replacements[0:2]
