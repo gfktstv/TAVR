@@ -1,3 +1,4 @@
+import orjson
 import json
 
 from flask import Flask, request, jsonify, redirect, url_for, render_template
@@ -50,7 +51,7 @@ class Connection:
         @self._app.route('/get_tokens', methods=['GET'])
         def get_tokens():
             with open('temporary_files/tokens.json', 'r') as f:
-                tokens = json.load(f)
+                tokens = orjson.loads(f.read())
             return jsonify(tokens, self.tokens_text)
 
         @self._app.route('/get_replacements', methods=['POST'])
