@@ -1,0 +1,190 @@
+@font-face {
+    font-family: 'TTNormsProRegular';
+    src: url(../../fonts/TTNormsPro-Regular.ttf);
+}
+@font-face {
+    font-family: 'TTNormsProMedium';
+    src: url(../../fonts/TTNormsPro-Medium.ttf);
+}
+@font-face {
+    font-family: 'TTNormsProBold';
+    src: url(../../fonts/TTNormsPro-Bold.ttf);
+}
+
+.navigation-container {
+    background-color: #e8f1ff;
+
+    width: 100%;
+    height: 30px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 0px;
+
+    margin: 0px;
+    padding: 0px;
+}
+.navigation {
+    height: 28px;
+
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+
+    vertical-align: text-top;
+
+    padding-left: 24px;
+    padding-right: 24px;
+}
+.nav-start-list {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 24px;
+
+    height: fit-content;
+
+    margin: 0px;
+    padding: 0px;
+    padding-top: 5px;
+    padding-bottom: 3px;
+}
+.nav-end-list {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 24px;
+
+    height: fit-content;
+
+    margin: 0px;
+    padding: 0px;
+    padding-top: 5px;
+    padding-bottom: 3px;
+}
+.navigation li {
+    list-style-type: none;
+
+    height: fit-content;
+}
+.logo-min {
+    transition: 0.1s;
+
+    vertical-align: text-top;
+}
+.btn-logo {
+    background-color: #00000000;
+    border: 0px;
+
+    font-family: 'TTNormsProBold';
+    font-size: 13.7px;
+    color: #2670FF;
+    transition: 0.1s;
+
+    &:hover {
+        cursor: pointer;
+        color: #0b67ff;  /*#214a9a*/
+    };
+
+    margin: 0px;
+    padding: 0px;
+    padding-right: 6px;
+}
+.nav-item {
+    font-family: 'TTNormsProMedium';
+    font-size: 13.7px;
+    color: #363636;
+    transition: 0.1s;
+
+    &:hover {
+        color: #000000;
+    }
+
+    margin: 0px;
+    padding: 0px;
+}
+.nav-end-list .nav-item {
+    font-family: 'TTNormsProRegular';
+    font-size: 13px;
+    color: #BCBCBC;
+    transition: 0.4s;
+
+    &:hover {
+        transition: 0.4s;
+        color: #000000;
+    }
+
+    margin: 0px;
+    padding: 0px;
+}
+.navigation a {
+    text-decoration: none;
+
+    padding: 0px;
+}
+.link-repository {
+    &:hover {
+       color: #000000;
+       transition: 0.5s;
+       cursor: pointer;
+       .link-icon {
+           transition: 0.5s;
+           filter: invert(0%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(0%) contrast(100%);
+       }
+       #repositoryItem {
+           transition: 0.5s;
+           color: #000000;
+       }
+    }
+}
+.link-icon {
+    vertical-align: text-bottom;
+    width: 15px;
+    height: 15px;
+    transition: 0.5s;
+
+    &:hover {
+        transition: 0.1s;
+        filter: invert(0%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(0%) contrast(100%);
+
+        .nav-item {
+            transition: 0.1s;
+            color: #000000;
+        }
+    }
+}
+.copy-icon {
+    vertical-align: text-bottom;
+    width: 13px;
+    height: 13px;
+    transition: 0.55s;
+}
+.btn-contacts {
+    font-family: 'TTNormsProRegular';
+    font-size: 13px;
+    color: #BCBCBC;
+    background-color: #f5f5f500;
+    transition: 0.4s;
+
+    &:hover {
+        color: #000000;
+        transition: 0.2s;
+        cursor: pointer;
+        .copy-icon {
+            transition: 0.1s;
+            filter: invert(0%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(0%) contrast(100%);
+        }
+    }
+
+    padding: 0px;
+    border-width: 0px;
+}
+.thick-horizontal-line {
+    width: 100%;
+    height: 1px;
+
+    margin: 0px;
+    padding: 0px;
+    border: 0px;
+}

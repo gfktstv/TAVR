@@ -530,9 +530,9 @@ class _LexicalSophisticationMeasurements:
         )
 
         if np.isnan(bigram_accuracy):
-            bigram_accuracy = 0
+            bigram_accuracy = .0
         if np.isnan(trigram_accuracy):
-            trigram_accuracy = 0
+            trigram_accuracy = .0
 
         measurements_dict = {
             'Bigram accuracy': bigram_accuracy,
@@ -595,6 +595,8 @@ class _LexicalSophisticationMeasurements:
             if token.text in academic_word_list:
                 self._marked_up_tokens[token]['academic'] = True
                 academic_words.append(token)
+            else:
+                self._marked_up_tokens[token]['academic'] = False
 
         statistics_dict = {
             'Amount of academic words': len(academic_words),
@@ -777,14 +779,16 @@ class TextAnalysis:
         self._lexical_sophistication_measurements = self._lex_sop.get_full_data()
         self._lexical_diversity_measurements = self._lex_div.indices_data()
         self._marked_up_tokens = self._lex_sop.get_marked_up_tokens()
+        self._marked_up_tokens_without_functional = self._lex_sop.get_marked_up_tokens(False)
         self._marked_up_n_grams = self._lex_sop.marked_up_n_grams
         self._vocabulary_by_level_dict = self._lex_sop.vocabulary_by_level_dict
 
-    def get_vocabulary_chart(self):
+    def get_vocabulary_chart_qck_anltcs(self):
         """
         Creates a pie chart with the CEFR levels (A1, A2, B1, etc.) and appropriate number of words from a given essay.
+        Version for quick analytics (in the web app).
 
-        The result is vocabulary_chart.png file
+        The result is vocabulary_chart_qck_anltcs.png file
         """
         fig, ax = plt.subplots(facecolor=(0.1, 0.2, 0.5, 0))
 
@@ -792,15 +796,55 @@ class TextAnalysis:
         amount_of_vocabulary_by_level = list(self._vocabulary_by_level_dict.values())
         # Levels (labels)
         levels_of_vocabulary = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2']
-        colors = ['#FFE89C', '#FFCF32', '#EA8198',
-                  '#EC2C55', '#AB60C6', '#7E00AC']
+        colors = ['#FFE89C', '#FFCF32', '#66C4D8',
+                  '#5282F2', '#9C99FF', '#6B66FF']
 
         ax.pie(amount_of_vocabulary_by_level,
                labels=levels_of_vocabulary,
                autopct='%1.1f%%',
                colors=colors
                )
-        plt.savefig('temporary_files/vocabulary_chart.png')
+        plt.savefig('temporary_files/vocabulary_chart_qck_anltcs.png',
+                    bbox_inches='tight',
+                    pad_inches=0,
+                    dpi=500.0)
+
+    @staticmethod
+    def make_autopct(values):
+        def my_autopct(pct):
+            total = sum(values)
+            val = int(round(pct * total / 100.0))
+            return '{p:.1f}%\n({v:d})'.format(p=pct, v=val)
+
+        return my_autopct
+
+    def get_vocabulary_chart_anltcs(self):
+        """
+        Creates a pie chart with the CEFR levels (A1, A2, B1, etc.) and appropriate number of words from a given essay.
+        Version for analytics (in the web app).
+
+        The result is vocabulary_chart_anltcs.png file
+        """
+        fig, ax = plt.subplots(facecolor=(0.1, 0.2, 0.5, 0))
+
+        # Amount of vocabulary for each level
+        amount_of_vocabulary_by_level = list(self._vocabulary_by_level_dict.values())
+        # Levels (labels)
+        levels_of_vocabulary = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2']
+        colors = ['#FFE89C', '#FFCF32', '#66C4D8',
+                  '#5282F2', '#9C99FF', '#6B66FF']
+
+        ax.pie(amount_of_vocabulary_by_level,
+               labels=levels_of_vocabulary,
+               autopct=self.make_autopct(amount_of_vocabulary_by_level),
+               colors=colors,
+               explode=(0.1, 0.1, 0, 0, 0, 0),  # First and second pieces will explode (A1 and A2)
+               textprops={'fontsize': 9}
+               )
+        plt.savefig('temporary_files/vocabulary_chart_anltcs.png',
+                    bbox_inches='tight',
+                    pad_inches=0,
+                    dpi=500.0)
 
     def get_trigrams_dataframe(self):
         """
@@ -819,6 +863,7 @@ class TextAnalysis:
                 trigrams_dict['Frequency'].append(trigram_tuple[1]['freq'])
                 trigrams_dict['Range'].append(trigram_tuple[1]['range'])
         trigrams = pd.DataFrame(trigrams_dict)
+        trigrams.fillna('-', inplace=True)
         return trigrams
 
     def get_academic_formulas_dataframe(self):
@@ -829,18 +874,37 @@ class TextAnalysis:
         """
         # Dictionary that will be converted into CSV table
         academic_formulas_dict = {
-            'Academic formula': list(), 'Frequency': list()
+            'Academic formula': list()
         }
         for n_gram, n_gram_dict in self._marked_up_n_grams.items():
             if n_gram_dict['academic'] is True:
                 academic_formulas_dict['Academic formula'].append(n_gram)
-                academic_formulas_dict['Frequency'].append(n_gram_dict['freq'])
         academic_formulas = pd.DataFrame(academic_formulas_dict)
 
         if academic_formulas.empty:
-            academic_formulas = pd.DataFrame({'Academic formula': ['Not found'], 'Frequency': ['-']})
+            academic_formulas = pd.DataFrame({'Academic formula': ['Not found']})
 
         return academic_formulas
+
+    def get_academic_words_dataframe(self):
+        """
+        Creates a pandas DataFrame with academic words and their frequency from a given text.
+
+        Returns a pandas DataFrame
+        """
+        academic_words_dict = {
+            'Academic word': list()
+        }
+
+        for token, token_dict in self._marked_up_tokens_without_functional.items():
+            if token_dict['academic']:
+                academic_words_dict['Academic word'].append(token)
+        academic_words = pd.DataFrame(academic_words_dict)
+
+        if academic_words.empty:
+            academic_words = pd.DataFrame({'Academic word': ['Not found']})
+
+        return academic_words
 
     def get_stats_dataframe(self):
         """
@@ -918,6 +982,13 @@ class TextAnalysis:
         else:
             academic_formulas = academic_formulas.head(academic_formulas.shape[0])
 
+        academic_words = self.get_academic_words_dataframe()
+        # Leave only first 6 entities or fewer
+        if academic_words.shape[0] >= 6:
+            academic_words = academic_words.head(6)
+        else:
+            academic_words = academic_words.head(academic_formulas.shape[0])
+
         recurring_lemmas = self.get_recurring_lemmas_dataframe()
         # Leave only first 10 entities or fewer
         if recurring_lemmas.shape[0] >= 10:
@@ -927,8 +998,9 @@ class TextAnalysis:
 
         level = self.get_level()
         stats = self.get_stats_dataframe()
-        self.get_vocabulary_chart()
-        return trigrams, stats, academic_formulas, recurring_lemmas, level
+        self.get_vocabulary_chart_qck_anltcs()
+        self.get_vocabulary_chart_anltcs()
+        return trigrams, stats, academic_formulas, academic_words, recurring_lemmas, level
 
     @property
     def lexical_sophistication_measurements(self):
@@ -1024,7 +1096,7 @@ class TokenReplacementOptions:
         lexical_sophistication.vocabulary_by_level(for_replacement_options=True)
         marked_up_synonyms = lexical_sophistication.get_marked_up_tokens(include_functional_words=False)
 
-        # For now, we only imagine that we have token level, frequency and range
+        # Level, frequency and range of a token
         token_level = self._marked_up_tokens[token]['level']
         token_freq = self._marked_up_tokens[token]['freq']
         token_range = self._marked_up_tokens[token]['range']
@@ -1038,12 +1110,13 @@ class TokenReplacementOptions:
                     and ((value['freq'] != 0) and (value['range'] != 0))}
         # Sorts synonyms by level
         synonyms_sorted_by_level = sorted(synonyms.items(), key=lambda x: x[1]['level'], reverse=True)
+        replacements_level = [synonym_tuple[1]['level'] for synonym_tuple in synonyms_sorted_by_level]
         if return_token_text:
             # Also replace _ with space
             replacements = [synonym_set[0].text.replace('_', ' ') for synonym_set in synonyms_sorted_by_level]
         else:
             replacements = [synonym_set[0] for synonym_set in synonyms_sorted_by_level]
-        return replacements[0:2]
+        return replacements[0:2], replacements_level
 
 
 def main():

@@ -1,0 +1,20 @@
+html {
+    margin: 0px;
+    height: 100vh;
+}
+
+body {
+    margin: 0px;
+    height: 100vh;
+}
+
+.main-container {
+    display: flex;
+
+    height: 100vh;
+}
+main {
+    padding-top: 88px;
+    padding-left: 5%;
+    padding-right: 5%;
+}

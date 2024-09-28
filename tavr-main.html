@@ -3,67 +3,216 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="tavr-main-style.css" rel="stylesheet" type="text/css"/>
-    <title>TAVR</title>
+    <link href="style_sheets/main_page/common_style.css" rel="stylesheet" type="text/css"/>
+    <link href="style_sheets/main_page/instruments.css" rel="stylesheet" type="text/css"/>
+    <link href="style_sheets/main_page/navigation.css" rel="stylesheet" type="text/css"/>
+    <link href="style_sheets/main_page/essay_area.css" rel="stylesheet" type="text/css"/>
+    <link href="style_sheets/main_page/replacements.css"  rel="stylesheet" type="text/css"/>
+    <link href="style_sheets/main_page/quick_analytics.css"  rel="stylesheet" type="text/css"/>
+    <link href="style_sheets/main_page/analytics.css" rel="stylesheet" type="text/css"/>
+    <link href="style_sheets/main_page/notifications.css"  rel="stylesheet" type="text/css"/>
+    <title>Essay analyser | TAVR</title>
+    <link rel="icon" href="images/favicon.ico" type="image/x-icon"/>
 </head>
 <body>
-    <div id="containerEssay" class="containerEssay">
-        <h1 id="title-above-essay">Analyze your essay with TAVR</h1>
-            <textarea id="inputEssay" onInput="this.parentNode.dataset.replicatedValue = this.value" 
-            placeholder="Write your essay here (1500-2500 characters)"  
-            minlength="1500" maxlength="2500" spellcheck="true"></textarea>
-        <div id="inputMarkedEssay"></div>
-        <div class="buttons">
-            <button id="buttonAssess" onclick="showAssessment()" disabled><strong>Analyze</strong></button>
-            <div id="characterCount">0</div>
-            <div id="inputButton"></div>
+    <div class="navigation-container">
+        <nav class="navigation">
+            <ul class="nav-start-list">
+                <li>
+                    <button class="btn-logo">
+                        <img class="logo-min" src="images/logo-min.svg">
+                        TAVR
+                    </button>
+                </li>
+                <li>
+                    <a href="#"><span class="nav-item">Application</span></a>
+                </li>
+                <li>
+                    <a href="#"><span class="nav-item">Learn more</span></a>
+                </li>
+                <li>
+                    <a href="#"><span class="nav-item">Help</span></a>
+                </li>
+            </ul>
+            <ul class="nav-end-list">
+                <li>
+                    <a href="https://github.com/gfktstv/TAVR" target="_blank" rel="noopener noreferrer" class="link-repository">
+                        <span class="nav-item" id="repositoryItem">GitHub repository</span><img class="link-icon" src="images/link-icon-gray.svg">
+                    </a>
+                </li>
+                <li>
+                    <button class="btn-contacts" id="btnContacts" onclick="getContacts()">
+                        Contacts
+                        <img class="copy-icon" src="images/copy-icon-gray.svg">
+                    </button>
+                </li>
+            </ul>
+        </nav>
+        <hr color="#BCBCBC" size="1px" class="thick-horizontal-line">
+    </div>
+    <div class="main-container">
+        <div class="instruments-container" id="instrumentsContainer">
+            <nav class="instruments">
+                <ul class="instruments-title-list">
+                    <li>
+                        <span class="title-item">Instruments</span>
+                    </li>
+                </ul>
+                <hr color="#BCBCBC" size="1px" class="thin-horizontal-line">
+                <ul class="instruments-buttons-list">
+                </ul>
+                <div class="instruments-empty-space"></div>
+            </nav>
+        <hr color="#BCBCBC" size="1px" class="thin-vertical-line">
         </div>
+        <main>
+            <div id="containerInputEssay">
+                <h1>Analyse essay with TAVR</h1>
+                <textarea class="input-essay-area"
+                        id="inputEssayArea"
+                        placeholder="Write here (1500-2000 characters)"  
+                        minlength="1500" maxlength="2000" 
+                        autofocus></textarea>
+                <div class="buttons-essay-container">
+                    <button class="btn-analyse" id="buttonAnalyse" onclick="createToastAndTremble('buttonAnalyse')">
+                        Analyse
+                    </button>
+                    <button class="btn-characters" id="buttonCharacters" onclick="createToastAndTremble('buttonCharacters')">
+                        0 Characters
+                    </button>
+                </div>
+            </div>
+            <div id="containerMarkedUpEssay">
+                <h1>Tool for Analysis of Vocabulary Richness</h1> 
+                <div id="markedUpEssayArea" class="marked-up-essay-area"></div>
+                <div class="buttons-marked-up-essay-container">
+                    <button class="btn-copy" id="buttonCopy" onclick="copyEssay()">
+                        Copy
+                    </button>
+                    <button class="btn-start-over" id="buttonStartOver" onclick="startOver()">
+                        Start over
+                    </button>
+                </div>
+            </div>
+            <div id="containerAnalytics" class="container-analytics">
+                <h1>Examine your language with our analytics</h1>
+                <hr color="#BCBCBC" size="1px">
+                <div id="vocabularyChartContainerAnltcs" class="sub-container-analytics left">
+                    <img id="vocabularyChartAnalytics" class='vocabulary-chart-analytics'>
+                    <div id="vocabularyChartTextContainerAnltcs" class="text-container-analytics">
+                        <h2>Explore visually.</h2>
+                        <h3>What is the vocabulary pie chart?</h3>
+                        <p>
+                            Vocabulary pie chart shows levels of lexis you used in the essay
+                            using information from 
+                            <a href="https://cental.uclouvain.be/cefrlex/efllex/" target="_blank">EFLLex corpus</a>.
+                        </p>
+                        <h3>How to apply it?</h3>
+                        <p>
+                            Some text.
+                        </p>
+                    </div>
+                </div>
+                <div id="reccuringLemmasContainerAnltcs" class="sub-container-analytics right">
+                    <div id="reccuringLemmasTextContainerAnltcs" class="text-container-analytics">
+                        <h2>Shorten and replace.</h2>
+                        <h3>How to make an essay diverse?</h3>
+                        <p>
+                            This simple table with lemmas and their occurrences in the essay 
+                            can help you understand which words to replace with synonyms 
+                            to make the essay more diverse.
+                        </p>
+                        <h3>Simply enhance the lexicon with TAVR</h3>
+                        <p>
+                            Just click on words like <span id="reccuringLemma1" class="recurring-lemma"></span>, 
+                            <span id="reccuringLemma2" class="recurring-lemma"></span>, 
+                            or <span id="reccuringLemma3" class="recurring-lemma"></span> 
+                            in the text and see the replacement options. 
+                            All replacement options are less frequent or have higher CEFR levels.
+                        </p>
+                    </div>
+                    <div id="reccuringLemmasTableContainerAnltcs"></div>
+                </div>
+                <div id="academicFormulasContainerAnltcs" class="sub-container-analytics left">
+                    <div id="academicFormulasTablesContainerAnltcs"></div>
+                    <div id="academicFormulasTextContainerAnltcs" class="text-container-analytics">
+                        <h2>Stay academic.</h2>
+                        <h3>How to add academicism?</h3>
+                        <p>
+                            Make your language more scientific by preserving academic words and phrases 
+                            in your essay and increasing usage by exploring academic word and formulas lists.
+                        </p>
+                        <h3>What are these lists?</h3>
+                        <p>
+                            Academic lists are based on words and phrases that occur more often in 
+                            academic texts than in common writing. 
+                            Learn more on websites for 
+                            <a href="https://www.eapfoundation.com/vocab/academic/awllists/" target=”_blank”>Academic Word List (AWL)</a> 
+                            and 
+                            <a href="https://www.eapfoundation.com/vocab/academic/afl/" target=”_blank”>Academic Formulas List (AFL)</a>, 
+                            you can even find some exercises for practicing AWL!
+                        </p>    
+                    </div>
+                </div>
+                <div id="trigramsContainerAnltcs" class="sub-container-analytics right">
+                    <div id="trigramsTextContainerAnltcs" class="text-container-analytics">
+                        <h2>Avoid cliches.</h2>
+                        <h3>What is a trigram?</h3>
+                        <p>
+                            Sequences of 3 words are called trigrams. Some of them tend to be more frequent 
+                            than others and this may affect how your essay is scored. For instance, 
+                            phrase "on the one hand" is more popular than "in one way".
+                        </p>
+                        <p>
+                            Sometimes you should find alternatives for such cliches to make your text more sophisticated.
+                            A table with trigrams from the essay will help you find the most frequent ones to be replaced.
+                        </p>
+                    </div>
+                    <div id="trigramsTableContainerAnltcs"></div>
+                </div>
+                <div id="statsContainerAnltcs" class="sub-container-analytics">
+
+                </div>
+            </div>
+        </main>
+        <div class="quick-analytics-container" id="quickAnalyticsContainer">
+            <hr color="#BCBCBC" size="1px" class="thin-vertical-line">
+            <nav class="quick-analytics" id="quickAnalytics">
+                <ul class="quick-analytics-title-list">
+                    <li>
+                        <span class="title-item">Quick Analytics</span>
+                    </li>
+                </ul>
+                <hr color="#BCBCBC" size="1px">
+                <ul class="quick-analytics-buttons-list">
+                    <li>
+                        <input type="radio" name="quick-analytics-choice"
+                        id="vocabularyChartChoice" value="vocabularyChart" checked/><label for="vocabularyChartChoice">Vocabulary chart</label>
+                        <div id="vocabularyChartContainerQckAnltcs" class="desc"></div>
+                    </li>
+                    <li>
+                        <input type="radio" name="quick-analytics-choice"
+                        id="reccuringWordsChoice" value="reccuringWords"/><label for="reccuringWordsChoice">Reccuring words</label>
+                        <div id="reccuringWordsContainerQckAnltcs" class="desc" style="display: none;"></div>
+                    </li>
+                    <li>
+                        <input type="radio" name="quick-analytics-choice"
+                        id="frequentPhrasesChoice" value="frequentPhrases"/><label for="frequentPhrasesChoice">Frequent phrases</label>
+                        <div id="frequentPhrasesContainerQckAnltcs" class="desc" style="display: none;"></div>
+                    </li>
+                </ul>
+                <ul class="quick-analytics-level-and-stats-list">
+                    <li>
+                        <div id="levelContainerQckAnltcs"></div>
+                        <div id="statsContainerQckAnltcs" class="stats-container-quick-analytics"></div>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+        <ul class="notifications-list" id="notificationsList"></ul>
     </div>
-    <div id="inputContainerAssessment">
-        <div class='containerAssessment'>
-            <table class='tableAssessment'>
-              <tr class='rowAssessment'>
-                <td class='cellAssessment'>
-                  <div id='containerChart' onmouseover='showToolTip(`chartToolTip`, `containerChart`)' onmouseleave='hideToolTip(`chartToolTip`)'>
-                    <div id='chartToolTip' class='tooltip'>
-                      <p>The chart shows content of vocabulary for each level. Try to use more vocabulary with level B1 and higher</p>
-                    </div>
-                  </div>
-                  <div id='containerStats' onmouseover='showToolTip(`statsToolTip`, `containerStats`)' onmouseleave='hideToolTip(`statsToolTip`)'>
-                    <div id='statsToolTip' class='tooltip'>
-                      <p>Higher TTR means less recurring words. Average trigram frequency shows how frequent trigrams (e.g. on the one)</p>
-                    </div>
-                  </div>
-                </td>
-                <td class='cellAssessment'>
-                  <div id='containerTrigrams' onmouseover='showToolTip(`trigramsToolTip`, `containerTrigrams`)' onmouseleave='hideToolTip(`trigramsToolTip`)'>
-                    <div id='trigramsToolTip' class='tooltip'>
-                      <p>It is better to replace high frequent trigrams (>100) because they are cliche</p>
-                    </div>
-                  </div>
-                </td>
-                <td class='cellAssessment'>
-                  <div id='containerLevel' onmouseover='showToolTip(`levelToolTip`, `containerLevel`)' onmouseleave='hideToolTip(`levelToolTip`)'>
-                    <div id='levelToolTip' class='tooltip'>
-                      <p>The level based on TTR, it may be wrong</p>
-                    </div>
-                  </div>
-                  <div id='containerRecurringLemmas' onmouseover='showToolTip(`recurringLemmasToolTip`, `containerRecurringLemmas`)' onmouseleave='hideToolTip(`recurringLemmasToolTip`)'>
-                    <div id='recurringLemmasToolTip' class='tooltip'>
-                      <p>It is better to replace recurring words by click on them in a text area</p>
-                    </div>
-                  </div>
-                  <div id='containerAcademicFormulas' onmouseover='showToolTip(`academicFormulasToolTip`, `containerAcademicFormulas`)' onmouseleave='hideToolTip(`academicFormulasToolTip`)'>
-                    <div id='academicFormulasToolTip' class='tooltip'>
-                      <p>If your essay is academic one you should use more academic phrases. See more <a href='https://www.eapfoundation.com/vocab/academic/afl/' target="_blank">academic phrases</a></p>
-                    </div>
-                  </div>
-                </td>
-              </tr>
-            </table>
-          </div>
-    </div>
-    <div id='inputTrigramsTable'></div>
-    <script src="tavr-main-script.js"></script>
+    <script src="js/tavr-main-script.js"></script>
+    <script src="js/jquery-3.7.1.min.js"></script>
+    <script src="js/tavr-main-jquery-script.js"></script>
 </body>
 </html>

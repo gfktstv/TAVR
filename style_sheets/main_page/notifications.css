@@ -1,0 +1,76 @@
+@font-face {
+    font-family: 'TTNormsProRegular';
+    src: url(../../fonts/TTNormsPro-Regular.ttf);
+}
+@font-face {
+    font-family: 'TTNormsProMedium';
+    src: url(../../fonts/TTNormsPro-Medium.ttf);
+}
+@font-face {
+    font-family: 'TTNormsProBold';
+    src: url(../../fonts/TTNormsPro-Bold.ttf);
+}
+.notifications-list {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; 
+    gap: 15px;
+
+    position: fixed; 
+    bottom: 30px;
+    right: 24px;
+
+    padding: 0px;
+    margin: 0px;
+}
+.notifications-list li {
+    font-family: 'TTNormsProMedium';
+    font-size: 13px;
+    color: #FFFFFF;
+
+    list-style-type: none;
+    text-align: right;
+
+    animation: slideIn 0.45s ease forwards;
+
+    span {
+        width: auto;
+        height: 15px;
+
+        padding: 6px;
+        border-radius: 10px;
+    };
+    span.email {
+        background-color: #2670FF;
+    };
+    span.characters {
+        background-color: #2670FF;
+    };
+    span.tokens {
+        background-color: #000000;
+    };
+    span.connection {
+        background-color: #000000;
+    };
+    span.essayCopy {
+        background-color: #2670FF;
+    }
+    span.essayCopyError {
+        background-color: #000000;
+    }
+
+    padding: 0px;
+    margin: 0px;
+}
+@keyframes slideIn {
+    0% {
+        transform: translateY(60px);
+    }
+    100% {
+        transform: translateY(0%);
+    }
+}
+@keyframes fadeOut {
+    0% {opacity: 1;}
+    100% {opacity: 0;}
+}

@@ -1,0 +1,83 @@
+@font-face {
+    font-family: 'TTNormsProRegular';
+    src: url(../../fonts/TTNormsPro-Regular.ttf);
+}
+@font-face {
+    font-family: 'TTNormsProMedium';
+    src: url(../../fonts/TTNormsPro-Medium.ttf);
+}
+@font-face {
+    font-family: 'TTNormsProBold';
+    src: url(../../fonts/TTNormsPro-Bold.ttf);
+}
+
+.instruments-container {
+    background-color: #F5F5F5;
+
+    width: 185px;
+    min-width: 160px;
+    height: 100%;
+
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 0px;
+
+    z-index: 100;
+}
+.instruments {
+    width: 99%;
+
+    margin: 0px;
+    padding: 0px;
+}
+.instruments-title-list {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; 
+    gap: 10px;
+
+    margin: 0px;
+    padding-left: 24px;
+    padding-top: 60px;
+}
+.instruments-buttons-list {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; 
+    gap: 10px;
+
+    margin: 0px;
+    padding: 0px;
+    padding-block: 10px;
+    padding-left: 24px;
+}
+.instruments li {
+    list-style-type: none;
+}
+.title-item {
+    font-family: 'TTNormsProBold';
+    font-size: 18px;
+    color: #2670FF;
+    transition: 0.1s;
+
+    &:hover {
+        cursor: default;
+    }
+
+    margin: 0px;
+    padding: 0px;
+}
+.thin-horizontal-line {
+    width: 100%;
+
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+.thin-vertical-line {
+    height: 100%;
+
+    margin: 0px;
+    padding: 0px;
+    border-left: 1px;
+}

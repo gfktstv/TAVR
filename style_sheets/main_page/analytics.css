@@ -1,0 +1,147 @@
+.container-analytics {
+    display: none;
+
+    margin-top: 120px;
+}
+.sub-container-analytics {
+    width: 830px;
+    height: max-content;
+
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    
+    margin-top: 80px;
+}
+/* Distance between elements for vocabulary chart is different */
+#vocabularyChartContainerAnltcs {
+    .text-container-analytics {
+        margin-top: 35px;
+        margin-left: 60px;
+        margin-right: 40px;
+    }
+
+    margin-top: 40px;
+}
+.text-container-analytics {
+    width: 355px;
+    text-align: left;
+}
+/* Different width for vocabulary chart text container because of different padding */
+#vocabularyChartTextContainerAnltcs {
+    width: 400px;
+}
+.vocabulary-chart-analytics {
+    width: 375px;
+    height: 375px;
+}
+h2 {
+    font-family: 'TTNormsProBold';
+    font-size: 20px;
+    color: #2670FF;
+
+    margin: 0px;
+    padding: 0px;
+
+    margin-bottom: 10px;
+}
+h3 {
+    font-family: 'TTNormsProBold';
+    font-size: 15px;
+    color: #000000;
+
+    margin: 0px;
+    padding: 0px;
+
+    margin-top: 3px;
+}
+.sub-container-analytics p {
+    font-family: 'TTNormsProMedium';
+    font-size: 15px;
+    color: #000000;
+
+    margin: 0px;
+    padding: 0px;
+
+    margin-bottom: 10px;
+}
+.sub-container-analytics a {
+    font-family: 'TTNormsProMedium';
+    font-size: 15px;
+    color: #2670FF;
+    &:hover {
+        cursor: pointer;
+        text-decoration: underline;
+    }
+
+    margin: 0px;
+    padding: 0px;
+}
+.recurring-lemma {
+    font-family: 'TTNormsProMedium';
+    font-size: 15px;
+    color: #2670FF;
+    &:hover {
+        cursor: default;
+    };
+
+    margin: 0px;
+    padding: 0px;
+}
+#academicFormulasTablesContainerAnltcs {
+    display: flex;
+    flex-direction: column;
+}
+#academicFormulasTablesContainerAnltcs table {
+    font-family: 'TTNormsProMedium';
+    font-size: 15px;
+    color: #000000;
+
+    width: 355px;
+
+    border: 0px solid #BCBCBC;
+
+    margin: 0px;
+    margin-bottom: 15px;
+}
+.container-analytics table {
+    font-family: 'TTNormsProMedium';
+    font-size: 15px;
+    color: #000000;
+
+    width: 355px;
+
+    border: 0px solid #BCBCBC;
+
+    margin: 0px;
+}
+th {
+    font-family: 'TTNormsProBold';
+    font-weight: normal;
+    font-size: 15px;
+    color: #000000;
+
+    background-color: #d7d7d7;
+
+    text-align: center;
+
+    border: 0px solid #BCBCBC;
+
+    padding-top: 3px;
+    padding-bottom: 3px;
+}
+tbody tr:nth-child(odd) {
+    background-color: #F5F5F5;
+}
+  
+tbody tr:nth-child(even) {
+    background-color: #d7d7d7;
+}
+td {
+    text-align: center;
+
+    border: 0px solid #BCBCBC;
+
+    padding-top: 3px;
+    padding-bottom: 3px;
+}

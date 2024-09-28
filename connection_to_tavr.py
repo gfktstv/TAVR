@@ -26,10 +26,11 @@ class Connection:
 
             tavr_text_analysis = tavr.TextAnalysis(essay)
 
-            trigrams, stats, academic_formulas, recurring_lemmas, level = tavr_text_analysis._get_data_for_web()
+            trigrams, stats, academic_formulas, academic_words, recurring_lemmas, level = tavr_text_analysis._get_data_for_web()
             trigrams_html = trigrams.to_html(index=False)
             stats_html = stats.to_html(index=False, header=False)
             academic_formulas_html = academic_formulas.to_html(index=False)
+            academic_words_html = academic_words.to_html(index=False)
             recurring_lemmas_html = recurring_lemmas.to_html(index=False)
 
             # Original dictionary from TAVR
@@ -46,7 +47,15 @@ class Connection:
             with open('temporary_files/tokens.json', 'w') as f:
                 json.dump(tokens_for_json, f, indent=2, sort_keys=False)
 
-            return jsonify(trigrams_html, stats_html, academic_formulas_html, recurring_lemmas_html, level)
+            return jsonify(table_trigrams=trigrams_html,
+                           table_stats=stats_html,
+                           table_academic_formulas=academic_formulas_html,
+                           table_academic_words=academic_words_html,
+                           table_recurring_lemmas=recurring_lemmas_html,
+                           level=level,
+                           recurring_lemmas=list(recurring_lemmas['Lemma']),
+                           len_academic_formulas=len(academic_formulas['Academic formula']),
+                           len_academic_words=len(academic_words['Academic word']))
 
         @self._app.route('/get_tokens', methods=['GET'])
         def get_tokens():
@@ -59,13 +68,19 @@ class Connection:
             response = request.get_json()
             id = response.get('data')
             token = self.token_id_dict[f'{id}']
-            replacements = tavr.TokenReplacementOptions(self.marked_up_tokens).get_replacement_options(
+            replacements, replacements_level = tavr.TokenReplacementOptions(self.marked_up_tokens).get_replacement_options(
                 token, True
             )
-            return jsonify(replacements)
+            return jsonify(lemmas=replacements,
+                           levels=replacements_level)
 
         if __name__ == '__main__':
             self._app.run(debug=True)
 
 
-Connection().connect()
+def main():
+    Connection().connect()
+
+
+if __name__ == '__main__':
+    main()

@@ -1,0 +1,145 @@
+@font-face {
+    font-family: 'TTNormsProRegular';
+    src: url(../../fonts/TTNormsPro-Regular.ttf);
+}
+@font-face {
+    font-family: 'TTNormsProMedium';
+    src: url(../../fonts/TTNormsPro-Medium.ttf);
+}
+@font-face {
+    font-family: 'TTNormsProBold';
+    src: url(../../fonts/TTNormsPro-Bold.ttf);
+}
+
+#replacementsPopUpWindow {
+    width: 150px;
+    min-height: 30px;
+    height: auto; 
+    background-color: #F5F5F5;
+
+    opacity: 1;
+    transition: opacity 0.55s linear;
+    
+    outline: 5px solid #F5F5F5;
+    border: 2px solid #BCBCBC;
+    border-radius: 10px;
+
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    z-index: 1;
+}
+#buttonReplacement {
+    width: 140px;
+
+    font-family: 'TTNormsProMedium';
+    font-size: 15px;
+
+    margin: 5px;
+    padding: 2px;
+    border-radius: 10px;
+
+    color: #000000;
+    
+    cursor: pointer;
+}
+#noReplacements {
+    width: 140px;
+
+    font-family: 'TTNormsProMedium';
+    font-size: 15px;
+
+    margin: 5px;
+    padding: 2px;
+    border: 0px;
+    border-radius: 10px;
+
+    background-color: #F5F5F5;
+    color: #454545;
+}
+.tooltip {
+    width: 150px;
+    min-height: 20px;
+    height: auto; 
+    background-color: #BCBCBC;
+    
+    color: #454545;
+    font-family: sans-serif;
+    font-size: 12px;
+    text-align: justify;
+
+    padding: 5px;
+
+    border: 0px solid #F9F9F9;
+    border-radius: 10px;
+
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    z-index: 1;
+
+    display: none;
+}
+
+.button-level0 {
+    border: 1px solid rgb(255, 232, 156);
+    background-color: rgba(255, 232, 156, 0.4);
+    transition: 0.2s;
+
+    &:hover {
+        background-color: rgba(255, 232, 156, 0.6);
+        transition: 0.2s;
+    }
+}
+.button-level1 {
+    border: 1px solid rgb(255, 207, 50);
+    background-color: rgba(255, 207, 50, 0.45);
+    transition: 0.2s;
+
+    &:hover {
+        background-color: rgba(255, 207, 50, 0.65);
+        transition: 0.2s;
+    }
+}
+.button-level2 {
+    border: 1px solid rgb(102, 196, 216);
+    background-color: rgb(102, 196, 216, 0.4);
+    transition: 0.2s;
+
+    &:hover {
+        background-color: rgba(102, 196, 216, 0.6);
+        transition: 0.2s;
+    }
+}
+.button-level3 {
+    border: 1px solid rgb(82, 130, 242);
+    background-color: rgba(82, 130, 242, 0.45);
+    transition: 0.2s;
+
+    &:hover {
+        background-color: rgba(82, 130, 242, 0.65);
+        transition: 0.2s;
+    }
+}
+.button-level4 {
+    border: 1px solid rgb(156, 153, 255);
+    background-color: rgba(156, 153, 255, 0.4);
+    transition: 0.2s;
+
+    &:hover {
+        background-color: rgba(156, 153, 255, 0.6);
+        transition: 0.2s;
+    }
+}
+.button-level5 {
+    border: 1px solid rgb(107, 102, 255);
+    background-color: rgba(107, 102, 255, 0.45);
+    transition: 0.2s;
+
+    &:hover {
+        background-color: rgba(107, 102, 255, 0.65);
+        transition: 0.2s;
+    }
+}

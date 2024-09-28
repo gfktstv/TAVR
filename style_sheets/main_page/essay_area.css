@@ -1,0 +1,290 @@
+@font-face {
+    font-family: 'TTNormsProRegular';
+    src: url(../../fonts/TTNormsPro-Regular.ttf);
+}
+@font-face {
+    font-family: 'TTNormsProMedium';
+    src: url(../../fonts/TTNormsPro-Medium.ttf);
+}
+@font-face {
+    font-family: 'TTNormsProBold';
+    src: url(../../fonts/TTNormsPro-Bold.ttf);
+}
+
+h1 {
+    font-family: 'TTNormsProBold';
+    font-size: 24px;
+
+    margin-top: 0px;
+    margin-bottom: 10px;
+    padding-left: 40px;
+}
+.input-essay-area {
+    width: 700px;
+    height: 480px;
+    resize: none;
+
+    border: 1px solid #BCBCBC;
+    border-radius: 55px;
+    
+    background-color: #F5F5F5;
+
+    padding-top: 30px;
+    padding-bottom: 30px;
+    padding-left: 40px;
+    padding-right: 40px;
+
+    font-family: 'TTNormsProMedium';
+    font-size: 15px;
+
+    &::placeholder {
+        color: #BCBCBC;
+    }
+
+    &:focus{
+        border: 1px solid #2670FF;
+        outline: 1px solid #2670FF;
+      }
+    &::-webkit-scrollbar {
+        display: none;
+     }
+      
+}
+#containerInputEssay {
+    z-index: -1;
+}
+.buttons-essay-container {
+    display: flex;
+    justify-content: space-between;
+
+    width: 700px;
+    
+    margin-top: 10px;
+    margin-bottom: 10px;
+    padding-left: 40px;
+}
+.btn-analyse {
+    width: 150px;
+
+    color: #FFFFFF;
+    font-family: 'TTNormsProMedium';
+    font-size: 15px;
+
+    background-color: #BCBCBC;
+    padding: 8px;
+
+    border: 0px;
+    border-radius: 55px;
+
+    cursor: pointer;
+
+    transition: 0.45s;
+
+    &:focus {
+        border: 0px;
+        outline: 0px;
+    };
+}
+
+.btn-characters {
+    width: 150px;
+
+    color: #000000;
+    font-family: 'TTNormsProMedium';
+    font-size: 13.7px;
+
+    background-color: #FFFFFF;
+    padding: 8px;
+
+    border: 0px;
+    border-radius: 55px;
+
+    cursor: pointer;
+
+    &:focus {
+        border: 0px;
+        outline: 0px;
+    }
+}
+#containerMarkedUpEssay {
+    display: none;
+}
+.marked-up-essay-area {
+    width: 750px;
+    height: fit-content;
+    resize: none;
+
+    border: 1px solid #BCBCBC;
+    border-radius: 55px;
+    
+    background-color: #F5F5F5;
+
+    padding-top: 20px;
+    padding-bottom: 20px;
+    padding-left: 40px;
+    padding-right: 40px;
+
+    font-family: 'TTNormsProMedium';
+    font-size: 15.8px;
+    line-height: 1.5;
+
+    &::-webkit-scrollbar {
+        display: none;
+     } 
+}
+.buttons-marked-up-essay-container {
+    display: flex;
+    justify-content: space-between;
+
+    width: 750px;
+    
+    margin-top: 10px;
+    margin-bottom: 10px;
+    padding-left: 40px;
+}
+.btn-copy {
+    width: 150px;
+
+    color: #FFFFFF;
+    font-family: 'TTNormsProMedium';
+    font-size: 15px;
+
+    background-color: #2670FF;
+    padding: 8px;
+
+    border: 0px;
+    border-radius: 55px;
+
+    cursor: pointer;
+
+    transition: 0.45s;
+
+    &:focus {
+        border: 0px;
+        outline: 0px;
+    };
+    &:hover {
+        background-color: #004EE5;
+        transition: 0.45s;
+    }
+}
+.btn-start-over {
+    width: 150px;
+
+    color: #FFFFFF;
+    font-family: 'TTNormsProMedium';
+    font-size: 15px;
+
+    background-color: #292929;
+    padding: 8px;
+
+    border: 0px;
+    border-radius: 55px;
+
+    cursor: pointer;
+
+    transition: 1s;
+
+    &:focus {
+        border: 0px;
+        outline: 0px;
+    };
+    &:hover {
+        background-color: #000000;
+        transition: 1s;
+    }
+}
+span {
+    &:hover {
+        cursor: pointer;
+    };
+    border-radius: 7px;
+    padding: 2px;
+    padding-top: 0.3px;
+    padding-bottom: 0.3px;
+}
+.no_data {
+    &:hover {
+        cursor: default;
+    };
+    border: 1px solid #DADADA;
+    background-color: #f9f9f982;
+}
+.level0 {
+    border: 1px solid rgb(255, 232, 156);
+    background-color: rgba(255, 232, 156, 0.4);
+    transition: 0.55s;
+}
+.level1 {
+    border: 1px solid rgb(255, 207, 50);
+    background-color: rgba(255, 207, 50, 0.45);
+    transition: 0.55s;
+}
+.level2 {
+    border: 1px solid rgb(102, 196, 216);
+    background-color: rgb(102, 196, 216, 0.4);
+    transition: 0.55s;
+}
+.level3 {
+    border: 1px solid rgb(82, 130, 242);
+    background-color: rgba(82, 130, 242, 0.45);
+    transition: 0.55s;
+}
+.level4 {
+    border: 1px solid rgb(156, 153, 255);
+    background-color: rgba(156, 153, 255, 0.4);
+    transition: 0.55s;
+}
+.level5 {
+    border: 1px solid rgb(107, 102, 255);
+    background-color: rgba(107, 102, 255, 0.45);
+    transition: 0.55s;
+}
+@keyframes tremble {
+    0% {
+        transform: translateX(0%);
+    }
+    25% {
+        transform: translateX(-3%);
+    }
+    50% {
+        tranform: translateX(0%);
+    }
+    75% {
+        transform: translateX(3%);
+    }
+    100% {
+        transform: translateX(0%);
+    }
+}
+@keyframes scale {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(0.96);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+@keyframes slideAway {
+    0% {
+        transfrom: translateY(0%);
+        position: relative;
+        z-index: -1;
+    }
+    100% {
+        transform: translateY(150%);
+        position: relative;
+        z-index: -1;
+    }
+}
+@keyframes slideHere {
+    0% {
+        transform: translateY(150%);
+    }
+    100% {
+        transform: translateY(0%);
+    }
+}
