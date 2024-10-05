@@ -52,6 +52,8 @@ h1 {
 }
 #containerInputEssay {
     z-index: -1;
+
+    margin-left: 185px;
 }
 .buttons-essay-container {
     display: flex;

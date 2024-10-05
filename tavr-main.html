@@ -15,56 +15,49 @@
     <link rel="icon" href="images/favicon.ico" type="image/x-icon"/>
 </head>
 <body>
-    <div class="navigation-container">
-        <nav class="navigation">
-            <ul class="nav-start-list">
-                <li>
-                    <button class="btn-logo">
-                        <img class="logo-min" src="images/logo-min.svg">
-                        TAVR
-                    </button>
-                </li>
-                <li>
-                    <a href="#"><span class="nav-item">Application</span></a>
-                </li>
-                <li>
-                    <a href="#"><span class="nav-item">Learn more</span></a>
-                </li>
-                <li>
-                    <a href="#"><span class="nav-item">Help</span></a>
-                </li>
-            </ul>
-            <ul class="nav-end-list">
-                <li>
-                    <a href="https://github.com/gfktstv/TAVR" target="_blank" rel="noopener noreferrer" class="link-repository">
-                        <span class="nav-item" id="repositoryItem">GitHub repository</span><img class="link-icon" src="images/link-icon-gray.svg">
-                    </a>
-                </li>
-                <li>
-                    <button class="btn-contacts" id="btnContacts" onclick="getContacts()">
-                        Contacts
-                        <img class="copy-icon" src="images/copy-icon-gray.svg">
-                    </button>
-                </li>
-            </ul>
-        </nav>
-        <hr color="#BCBCBC" size="1px" class="thick-horizontal-line">
-    </div>
+    <nav class="navigation">
+        <ul class="nav-start-list">
+            <li>
+                <button class="btn-logo">
+                    <img class="logo-min" src="images/logo-min.svg">
+                    TAVR
+                </button>
+            </li>
+            <li>
+                <a href="#"><span class="nav-item">Application</span></a>
+            </li>
+            <li>
+                <a href="#"><span class="nav-item">Learn more</span></a>
+            </li>
+            <li>
+                <a href="#"><span class="nav-item">Help</span></a>
+            </li>
+        </ul>
+        <ul class="nav-end-list">
+            <li>
+                <a href="https://github.com/gfktstv/TAVR" target="_blank" rel="noopener noreferrer" class="link-repository">
+                    <span class="nav-item" id="repositoryItem">GitHub repository</span><img class="link-icon" src="images/link-icon-gray.svg">
+                </a>
+            </li>
+            <li>
+                <button class="btn-contacts" id="btnContacts" onclick="getContacts()">
+                    Contacts
+                    <img class="copy-icon" src="images/copy-icon-gray.svg">
+                </button>
+            </li>
+        </ul>
+    </nav>
     <div class="main-container">
-        <div class="instruments-container" id="instrumentsContainer">
-            <nav class="instruments">
-                <ul class="instruments-title-list">
-                    <li>
-                        <span class="title-item">Instruments</span>
-                    </li>
-                </ul>
-                <hr color="#BCBCBC" size="1px" class="thin-horizontal-line">
-                <ul class="instruments-buttons-list">
-                </ul>
-                <div class="instruments-empty-space"></div>
-            </nav>
-        <hr color="#BCBCBC" size="1px" class="thin-vertical-line">
-        </div>
+        <nav class="instruments" id="instrumentsContainer">
+            <ul class="instruments-title-list">
+                <li>
+                    <span class="title-item">Instruments</span>
+                </li>
+            </ul>
+            <ul class="instruments-buttons-list">
+            </ul>
+            <div class="instruments-empty-space"></div>
+        </nav>
         <main>
             <div id="containerInputEssay">
                 <h1>Analyse essay with TAVR</h1>
@@ -175,40 +168,36 @@
                 </div>
             </div>
         </main>
-        <div class="quick-analytics-container" id="quickAnalyticsContainer">
-            <hr color="#BCBCBC" size="1px" class="thin-vertical-line">
-            <nav class="quick-analytics" id="quickAnalytics">
-                <ul class="quick-analytics-title-list">
-                    <li>
-                        <span class="title-item">Quick Analytics</span>
-                    </li>
-                </ul>
-                <hr color="#BCBCBC" size="1px">
-                <ul class="quick-analytics-buttons-list">
-                    <li>
-                        <input type="radio" name="quick-analytics-choice"
-                        id="vocabularyChartChoice" value="vocabularyChart" checked/><label for="vocabularyChartChoice">Vocabulary chart</label>
-                        <div id="vocabularyChartContainerQckAnltcs" class="desc"></div>
-                    </li>
-                    <li>
-                        <input type="radio" name="quick-analytics-choice"
-                        id="reccuringWordsChoice" value="reccuringWords"/><label for="reccuringWordsChoice">Reccuring words</label>
-                        <div id="reccuringWordsContainerQckAnltcs" class="desc" style="display: none;"></div>
-                    </li>
-                    <li>
-                        <input type="radio" name="quick-analytics-choice"
-                        id="frequentPhrasesChoice" value="frequentPhrases"/><label for="frequentPhrasesChoice">Frequent phrases</label>
-                        <div id="frequentPhrasesContainerQckAnltcs" class="desc" style="display: none;"></div>
-                    </li>
-                </ul>
-                <ul class="quick-analytics-level-and-stats-list">
-                    <li>
-                        <div id="levelContainerQckAnltcs"></div>
-                        <div id="statsContainerQckAnltcs" class="stats-container-quick-analytics"></div>
-                    </li>
-                </ul>
-            </nav>
-        </div>
+        <nav class="quick-analytics" id="quickAnalytics">
+            <ul class="quick-analytics-title-list">
+                <li>
+                    <span class="title-item">Quick Analytics</span>
+                </li>
+            </ul>
+            <ul class="quick-analytics-buttons-list">
+                <li>
+                    <input type="radio" name="quick-analytics-choice"
+                    id="vocabularyChartChoice" value="vocabularyChart" checked/><label for="vocabularyChartChoice">Vocabulary chart</label>
+                    <div id="vocabularyChartContainerQckAnltcs" class="desc"></div>
+                </li>
+                <li>
+                    <input type="radio" name="quick-analytics-choice"
+                    id="reccuringWordsChoice" value="reccuringWords"/><label for="reccuringWordsChoice">Reccuring words</label>
+                    <div id="reccuringWordsContainerQckAnltcs" class="desc" style="display: none;"></div>
+                </li>
+                <li>
+                    <input type="radio" name="quick-analytics-choice"
+                    id="frequentPhrasesChoice" value="frequentPhrases"/><label for="frequentPhrasesChoice">Frequent phrases</label>
+                    <div id="frequentPhrasesContainerQckAnltcs" class="desc" style="display: none;"></div>
+                </li>
+            </ul>
+            <ul class="quick-analytics-level-and-stats-list">
+                <li>
+                    <div id="levelContainerQckAnltcs"></div>
+                    <div id="statsContainerQckAnltcs" class="stats-container-quick-analytics"></div>
+                </li>
+            </ul>
+        </nav>
         <ul class="notifications-list" id="notificationsList"></ul>
     </div>
     <script src="js/tavr-main-script.js"></script>

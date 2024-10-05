@@ -11,22 +11,21 @@
     src: url(../../fonts/TTNormsPro-Bold.ttf);
 }
 
-.quick-analytics-container {
+.quick-analytics {
     background-color: #F5F5F5;
 
     width: 365px;
     height: 100%;
 
     display: none;
-    flex-direction: row;
+    flex-direction: column;
     justify-content: space-between;
     gap: 0px;
-}
-.quick-analytics {
-    width: 100%;
 
     margin: 0px;
     padding: 0px;
+
+    border-left: 1px solid #BCBCBC;
 
     display: none;
 }
@@ -42,6 +41,9 @@
     margin: 0px;
     padding-left: 24px;
     padding-top: 60px;
+    padding-bottom: 8px;
+
+    border-bottom: 1px solid #BCBCBC;
 }
 .quick-analytics-title-list span {
     cursor: default;

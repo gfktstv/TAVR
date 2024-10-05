@@ -11,25 +11,21 @@
     src: url(../../fonts/TTNormsPro-Bold.ttf);
 }
 
-.instruments-container {
+.instruments {
     background-color: #F5F5F5;
 
     width: 185px;
-    min-width: 160px;
     height: 100%;
 
-    display: flex;
-    flex-direction: row;
+    display: none;
+    flex-direction: column;
     justify-content: space-between;
     gap: 0px;
 
-    z-index: 100;
-}
-.instruments {
-    width: 99%;
-
     margin: 0px;
     padding: 0px;
+
+    border-right: 1px solid #BCBCBC;
 }
 .instruments-title-list {
     display: flex;
@@ -40,6 +36,9 @@
     margin: 0px;
     padding-left: 24px;
     padding-top: 60px;
+    padding-bottom: 8px;
+
+    border-bottom: 1px solid #BCBCBC;
 }
 .instruments-buttons-list {
     display: flex;
@@ -68,16 +67,11 @@
     margin: 0px;
     padding: 0px;
 }
-.thin-horizontal-line {
-    width: 100%;
-
-    margin-top: 10px;
-    margin-bottom: 10px;
-}
-.thin-vertical-line {
-    height: 100%;
-
-    margin: 0px;
-    padding: 0px;
-    border-left: 1px;
+@keyframes slide3 {
+    0% {
+        transform: translateX(-100%);
+    }
+    100% {
+        transform: translateX(0%);
+    }
 }

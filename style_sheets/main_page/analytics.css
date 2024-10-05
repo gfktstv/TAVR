@@ -145,3 +145,11 @@ td {
     padding-top: 3px;
     padding-bottom: 3px;
 }
+.container-analytics a {
+    text-decoration: none;
+    color: #2670FF;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}

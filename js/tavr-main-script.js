@@ -120,19 +120,20 @@ async function getMeasurementsFromTAVR(inputEssayArea) {
           setTimeout(() => containerMarkedUpEssay.style.animation = 'slideHere 0.55s ease-out forwards', 450);
           setTimeout(() => containerMarkedUpEssay.style.animation = 'none', 1000);
           // Quick analytics div and nav appears with slide1 animation
-          var quickAnalyticsContainer = document.getElementById(`quickAnalyticsContainer`);
           var quickAnalytics = document.getElementById(`quickAnalytics`);
           setTimeout(() => quickAnalytics.style.display = `block`, 550);
           setTimeout(() => quickAnalytics.style.animation = `slide1 0.55s ease forwards`, 550);
           setTimeout(() => quickAnalytics.style.animation = `none`, 1150);
-          setTimeout(() => quickAnalyticsContainer.style.display = `flex`, 550);
-          setTimeout(() => quickAnalyticsContainer.style.animation = `slide1 0.55s ease forwards`, 550);
-          setTimeout(() => quickAnalyticsContainer.style.animation = `none`, 1150);
           // Quick analytics nav elements apear with slide2 animation
           var quickAnalyticsElements = quickAnalytics.getElementsByTagName(`li`)
           for (var i = 0; i < quickAnalyticsElements.length; i++ ) {
               quickAnalyticsElements[i].style.animation = `slide2 0.${5 + i}5s ease forwards`;
           }
+          // Instruments nav appears with slide3 animation
+          var instrumentsContainer = document.getElementById(`instrumentsContainer`);
+          setTimeout(() => instrumentsContainer.style.display = `flex`, 550);
+          setTimeout(() => instrumentsContainer.style.animation = `slide3 0.55s ease forwards`, 550);
+          setTimeout(() => instrumentsContainer.style.animation = `none`, 1150);
           // Quick analytics vocabulary chart appearance
           var vocabularyChartContainerQckAnltcs = document.getElementById('vocabularyChartContainerQckAnltcs');
           setTimeout(() => vocabularyChartContainerQckAnltcs.style.maxHeight = `300px`, 1150);
@@ -146,12 +147,12 @@ async function getMeasurementsFromTAVR(inputEssayArea) {
           inputEssayArea.style.cursor = 'default';
           // Change page height to hide blank places at the time of animations
           setTimeout(() => document.body.style.height = document.body.clientHeight + 500 + 'px', 350)
-          setTimeout(() => document.getElementById('instrumentsContainer').style.height = document.body.clientHeight + 500 + 'px', 350)
-          setTimeout(() => document.getElementById('quickAnalyticsContainer').style.height = document.body.clientHeight + 500 + 'px', 350)
+          setTimeout(() => instrumentsContainer.style.height = document.body.clientHeight + 500 + 'px', 350)
+          setTimeout(() => quickAnalytics.style.height = document.body.clientHeight + 500 + 'px', 350)
           // Change page height to actual size
           setTimeout(() => document.body.style.height = containerMarkedUpEssay.clientHeight + containerAnalytics.clientHeight + 184 + 'px', 1701);
-          setTimeout(() => document.getElementById('instrumentsContainer').style.height = containerMarkedUpEssay.clientHeight + containerAnalytics.clientHeight + 184 + 'px', 1701);
-          setTimeout(() => document.getElementById('quickAnalyticsContainer').style.height = containerMarkedUpEssay.clientHeight + containerAnalytics.clientHeight + 184 + 'px', 1701);
+          setTimeout(() => instrumentsContainer.style.height = containerMarkedUpEssay.clientHeight + containerAnalytics.clientHeight + 184 + 'px', 1701);
+          setTimeout(() => quickAnalytics.style.height = containerMarkedUpEssay.clientHeight + containerAnalytics.clientHeight + 184 + 'px', 1701);
         });
     } catch (error) {
         // Change cursor view to default
