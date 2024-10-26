@@ -184,10 +184,97 @@ td {
 .quick-analytics-level-and-stats-list tbody tr:nth-child(even) {
     background-color: #F5F5F5;
 }
-.level-span {
-    color: #2670FF;
+.level-and-stats-container {
+    width: 313px;
+    height: 80px;
 
-    padding: 0px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+
+    border: 1px solid #BCBCBC;
+    border-radius: 16px;
+
+    margin: 0px;
+    padding: 12px 0 17px 0;
+}
+.level-and-stats-sub-container {
+    position: relative;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+#levelSubContainer {
+    margin-left: 15px;
+}
+#statsSubContainer {
+    margin-right: 22px;
+}
+.level-title {
+    font-family: TTNormsProMedium;
+    font-size: 11px;
+    color: #BCBCBC;
+
+    &:hover {
+        cursor: default;
+    }
+
+    padding-left: 7px;
+}
+.stats-title {
+    font-family: TTNormsProMedium;
+    font-size: 11px;
+    color: #BCBCBC;
+
+    &:hover {
+        cursor: default;
+    }
+
+    padding-left: 1px;
+}
+.level-span {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+
+    font-family: TTNormsProBold;
+    font-size: 85px;
+
+    background-image: linear-gradient(to right top, #0f60fd, #8fb9fd);
+    color: transparent;
+    background-clip: text;
+
+    padding: 0;
+
+    &:hover {
+        cursor: default;
+    }
+}
+.stats-input-container table {
+    font-family: 'TTNormsProMedium';
+    font-size: 12px;
+    color: #BCBCBC;
+
+    width: 145px;
+
+    margin: 0px;
+}
+.stats-input-container th {
+    font-family: 'TTNormsProBold';
+    font-weight: normal;
+    font-size: 11px;
+    color: #BCBCBC;
+
+    text-align: left;
+
+    padding-top: 3px;
+    padding-bottom: 3px;
+}
+.stats-input-container td {
+    text-align: left;
+
+    padding: 3px 0;
 }
 @keyframes slide1 {
     0% {

@@ -268,16 +268,25 @@ function addMeasurementsToQckAnltcs(tableTrigrams, tableStats, tableRecurringLem
   const frequentPhrasesContainerQckAnltcs = document.getElementById('frequentPhrasesContainerQckAnltcs');
   frequentPhrasesContainerQckAnltcs.innerHTML = tableTrigrams;
 
-  const levelContainerQckAnltcs = document.getElementById('levelContainerQckAnltcs');
-  levelContainerQckAnltcs.innerHTML = `Your essay level is <span class='level-span'>${level}</span>`;
-
-  const statsContainerQckAnltcs = document.getElementById('statsContainerQckAnltcs');
-  statsContainerQckAnltcs.innerHTML = tableStats;
+  // const levelContainerQckAnltcs = document.getElementById('levelContainerQckAnltcs');
+  // levelContainerQckAnltcs.innerHTML = `Your essay level is <span class='level-span'>${level}</span>`;
+  // New quick analytics level and stats container
+  const levelSpan = document.getElementById('levelSpan')
+  levelSpan.innerHTML = level
+  if (level==='A1' || level==='A2') {
+      levelSpan.style.backgroundImage = 'linear-gradient(to right top, #FFCF32, #FFE89C)'
+  } else if (level==='B1' || level==='B2') {
+      levelSpan.style.backgroundImage = 'linear-gradient(to right top, #0f60fd, #8fb9fd)'
+  } else if (level==='C1' || level==='C2') {
+      levelSpan.style.backgroundImage = 'linear-gradient(to right top, #6B66FF, #9C99FF)'
+  }
+  const statsInputContainer = document.getElementById('statsInputContainer');
+  statsInputContainer.innerHTML = tableStats;
 }
 
 // Add measurments to analytics
-function addMeasurementsToAnltcs(tableTrigrams, tableStats, tableAcademicFormulas, tableAcademicWords, 
-                                 tableRecurringLemmas, level, recurring_lemmas, len_academic_formulas, 
+function addMeasurementsToAnltcs(tableTrigrams, tableStats, tableAcademicFormulas, tableAcademicWords,
+                                 tableRecurringLemmas, level, recurring_lemmas, len_academic_formulas,
                                  len_academic_words) {
   const vocabularyChartAnalytics = document.getElementById('vocabularyChartAnalytics');
   vocabularyChartAnalytics.src = 'temporary_files/vocabulary_chart_anltcs.png';

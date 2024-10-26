@@ -953,15 +953,15 @@ class TextAnalysis:
         degree = len(coefficients) - 1
         score = sum([coefficients[i] * (TTR ** (degree - i)) for i in range(len(coefficients))])
         if score <= 4:
-            return f'A2 ({round(score)}/9)'
+            return f'A2'
         elif score <= 5:
-            return f'B1 ({round(score)}/9)'
+            return f'B1'
         elif score <= 6.5:
-            return f'B2 ({round(score)}/9)'
+            return f'B2'
         elif score <= 8:
-            return f'C1 ({round(score)}/9)'
+            return f'C1'
         else:
-            return f'C2 ({round(score)}/9)'
+            return f'C2'
 
     def _get_data_for_web(self):
         """
