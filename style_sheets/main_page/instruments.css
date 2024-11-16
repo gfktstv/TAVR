@@ -19,7 +19,7 @@
 
     display: none;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: flex-start;
     gap: 0px;
 
     margin: 0px;
@@ -30,7 +30,7 @@
 .instruments-title-list {
     display: flex;
     flex-direction: column;
-    justify-content: space-between; 
+    justify-content: flex-start;
     gap: 10px;
 
     margin: 0px;
@@ -40,21 +40,7 @@
 
     border-bottom: 1px solid #BCBCBC;
 }
-.instruments-buttons-list {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between; 
-    gap: 10px;
-
-    margin: 0px;
-    padding: 0px;
-    padding-block: 10px;
-    padding-left: 24px;
-}
-.instruments li {
-    list-style-type: none;
-}
-.title-item {
+.instruments-title-list .title-item {
     font-family: 'TTNormsProBold';
     font-size: 18px;
     color: #2670FF;
@@ -67,6 +53,78 @@
     margin: 0px;
     padding: 0px;
 }
+.instruments-level-buttons-list {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 0;
+
+    margin: 0;
+    padding-block: 10px;
+    padding: 8px 0 0 24px;
+}
+.instruments-level-buttons-list .title-item {
+    font-family: 'TTNormsProMedium';
+    font-size: 13.7px;
+    color: #000000;
+    transition: 0.1s;
+
+    &:hover {
+        cursor: default;
+    }
+
+    margin-bottom: 2px;
+    padding: 0;
+}
+.instruments-level-buttons-sub-list {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+
+    margin-left: 1px;
+    margin-top: 2px;
+    margin-bottom: 2px;
+}
+.instruments-level-buttons-list input {
+    margin-left: 0;
+}
+.instruments-level-buttons-list input + label {
+    font-family: 'TTNormsProRegular';
+    font-size: 13.7px;
+    color: #BCBCBC;
+    transition: 0.1s;
+
+    cursor: pointer;
+
+    &:hover {
+        color: #000000;
+        transition: 0.1s;
+    }
+
+    width: 45px;
+}
+.instruments-level-buttons-list input:checked + label {
+    color: #000000;
+}
+.instruments-check-uncheck-button {
+    font-family: 'TTNormsProRegular';
+    font-size: 13.7px;
+    color: #BCBCBC;
+    background-color: #F5F5F5;
+    border: 0;
+    transition: 0.1s;
+
+    cursor: pointer;
+
+    &:hover {
+        color: #000000;
+        transition: 0.1s;
+    }
+}
+.instruments li {
+    list-style-type: none;
+}
+
 @keyframes slide3 {
     0% {
         transform: translateX(-100%);

@@ -54,7 +54,69 @@
                     <span class="title-item">Instruments</span>
                 </li>
             </ul>
-            <ul class="instruments-buttons-list">
+            <ul class="instruments-level-buttons-list">
+                <li>
+                    <span class="title-item">Highlight levels</span>
+                </li>
+                <li class="instruments-level-buttons-sub-list">
+                    <input
+                            type="checkbox"
+                            id="levelButtonA1"
+                            name="A1"
+                            onclick="changeLevelHighlighting('levelButtonA1','level0', 'rgb(255, 232, 156)',
+                                                             'rgba(255, 232, 156, 0.4)')"
+                            checked />
+                    <label for="levelButtonA1">A1</label>
+                    <input
+                            type="checkbox"
+                            id="levelButtonA2"
+                            name="A2"
+                            onclick="changeLevelHighlighting('levelButtonA2', 'level1', 'rgb(255, 207, 50)',
+                                                             'rgba(255, 207, 50, 0.45)')"
+                            checked />
+                    <label for="levelButtonA2">A2</label>
+                </li>
+                <li class="instruments-level-buttons-sub-list">
+                    <input
+                            type="checkbox"
+                            id="levelButtonB1"
+                            name="B1"
+                            onclick="changeLevelHighlighting('levelButtonB1', 'level2', 'rgb(102, 196, 216)',
+                                                             'rgb(102, 196, 216, 0.4)')"
+                            checked />
+                    <label for="levelButtonB1">B1</label>
+                    <input
+                            type="checkbox"
+                            id="levelButtonB2"
+                            name="B2"
+                            onclick="changeLevelHighlighting('levelButtonB2', 'level3', 'rgb(82, 130, 242)',
+                                                             'rgba(82, 130, 242, 0.45)')"
+                            checked />
+                    <label for="levelButtonB2">B2</label>
+                </li>
+                <li class="instruments-level-buttons-sub-list">
+                    <input
+                            type="checkbox"
+                            id="levelButtonC1"
+                            name="C1"
+                            onclick="changeLevelHighlighting('levelButtonC1', 'level4', 'rgb(156, 153, 255)',
+                                                             'rgba(156, 153, 255, 0.4)')"
+                            checked />
+                    <label for="levelButtonC1">C1</label>
+                    <input
+                            type="checkbox"
+                            id="levelButtonC2"
+                            name="C2"
+                            onclick="changeLevelHighlighting('levelButtonC2', 'level5', 'rgb(107, 102, 255)',
+                                                             'rgba(107, 102, 255, 0.45)')"
+                            checked />
+                    <label for="levelButtonC2">C2</label>
+                </li>
+                <li>
+                    <button class="instruments-check-uncheck-button"
+                            id="checkUncheckButtonInstruments"
+                            onclick="checkUncheck()">Uncheck all</button>
+                </li>
             </ul>
             <div class="instruments-empty-space"></div>
         </nav>
@@ -106,8 +168,8 @@
                         </p>
                     </div>
                 </div>
-                <div id="reccuringLemmasContainerAnltcs" class="sub-container-analytics right">
-                    <div id="reccuringLemmasTextContainerAnltcs" class="text-container-analytics">
+                <div id="recurringLemmasContainerAnltcs" class="sub-container-analytics right">
+                    <div id="recurringLemmasTextContainerAnltcs" class="text-container-analytics">
                         <h2>Shorten and replace.</h2>
                         <h3>How to make an essay diverse?</h3>
                         <p>
@@ -117,14 +179,14 @@
                         </p>
                         <h3>Simply enhance the lexicon with TAVR</h3>
                         <p>
-                            Just click on words like <span id="reccuringLemma1" class="recurring-lemma"></span>, 
-                            <span id="reccuringLemma2" class="recurring-lemma"></span>, 
-                            or <span id="reccuringLemma3" class="recurring-lemma"></span> 
+                            Just click on words like <span id="recurringLemma1" class="recurring-lemma"></span>,
+                            <span id="recurringLemma2" class="recurring-lemma"></span>,
+                            or <span id="recurringLemma3" class="recurring-lemma"></span>
                             in the text and see the replacement options. 
                             All replacement options are less frequent or have higher CEFR levels.
                         </p>
                     </div>
-                    <div id="reccuringLemmasTableContainerAnltcs"></div>
+                    <div id="recurringLemmasTableContainerAnltcs"></div>
                 </div>
                 <div id="academicFormulasContainerAnltcs" class="sub-container-analytics left">
                     <div id="academicFormulasTablesContainerAnltcs"></div>
@@ -166,6 +228,8 @@
                 <div id="statsContainerAnltcs" class="sub-container-analytics">
 
                 </div>
+                <h1>What influences the assessment?</h1>
+                <hr color="#BCBCBC" size="1px">
             </div>
         </main>
         <nav class="quick-analytics" id="quickAnalytics">
@@ -176,27 +240,36 @@
             </ul>
             <ul class="quick-analytics-buttons-list">
                 <li>
-                    <input type="radio" name="quick-analytics-choice"
-                    id="vocabularyChartChoice" value="vocabularyChart" checked/><label for="vocabularyChartChoice">Vocabulary chart</label>
+                    <input
+                            type="radio"
+                            name="quick-analytics-choice"
+                            id="vocabularyChartChoice"
+                            value="vocabularyChart"
+                            checked />
+                    <label for="vocabularyChartChoice">Vocabulary chart</label>
                     <div id="vocabularyChartContainerQckAnltcs" class="desc"></div>
                 </li>
                 <li>
-                    <input type="radio" name="quick-analytics-choice"
-                    id="reccuringWordsChoice" value="reccuringWords"/><label for="reccuringWordsChoice">Reccuring words</label>
-                    <div id="reccuringWordsContainerQckAnltcs" class="desc" style="display: none;"></div>
+                    <input
+                            type="radio"
+                            name="quick-analytics-choice"
+                            id="recurringWordsChoice"
+                            value="recurringWords"/>
+                    <label for="recurringWordsChoice">Recurring words</label>
+                    <div id="recurringWordsContainerQckAnltcs" class="desc" style="display: none;"></div>
                 </li>
                 <li>
-                    <input type="radio" name="quick-analytics-choice"
-                    id="frequentPhrasesChoice" value="frequentPhrases"/><label for="frequentPhrasesChoice">Frequent phrases</label>
+                    <input
+                            type="radio"
+                            name="quick-analytics-choice"
+                            id="frequentPhrasesChoice"
+                            value="frequentPhrases"/>
+                    <label for="frequentPhrasesChoice">Frequent phrases</label>
                     <div id="frequentPhrasesContainerQckAnltcs" class="desc" style="display: none;"></div>
                 </li>
             </ul>
             <ul class="quick-analytics-level-and-stats-list">
-<!--                <li>-->
-<!--                    <div id="levelContainerQckAnltcs"></div>-->
-<!--                    <div id="statsContainerQckAnltcs" class="stats-container-quick-analytics"></div>-->
-<!--                </li>-->
-                <div class="level-and-stats-container">
+                <div class="level-and-stats-container" id="levelAndStatsContainer">
                     <div class="level-and-stats-sub-container" id="levelSubContainer">
                         <span class="level-title">ESSAY LEVEL</span>
                         <span class="level-span" id="levelSpan"></span>

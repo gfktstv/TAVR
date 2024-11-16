@@ -81,13 +81,13 @@
     margin: 0px;
     padding: 0px;
 }
-input {
+.quick-analytics-buttons-list input {
     appearance: none;
 
     margin: 0px;
     padding: 0px;
 }
-input + label {
+.quick-analytics-buttons-list input + label {
     font-family: 'TTNormsProMedium';
     font-size: 15px;
     color: #BCBCBC;
@@ -99,7 +99,7 @@ input + label {
         cursor: pointer;
     };
 }
-input:checked + label{
+.quick-analytics-buttons-list input:checked + label{
     color: #000000;
 }
 .vocabulary-chart-quick-analytics {
@@ -186,7 +186,10 @@ td {
 }
 .level-and-stats-container {
     width: 313px;
-    height: 80px;
+    max-height: 0;
+
+    transition: max-height 0.2s ease;
+    overflow: hidden;
 
     display: flex;
     flex-direction: row;
