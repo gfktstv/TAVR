@@ -26,10 +26,11 @@ class Connection:
 
             tavr_text_analysis = tavr.TextAnalysis(essay)
 
-            trigrams, stats, academic_formulas, academic_words, recurring_lemmas, level = tavr_text_analysis._get_data_for_web()
+            trigrams, stats, academic_formulas, academic_collocations, academic_words, recurring_lemmas, level = tavr_text_analysis._get_data_for_web()
             trigrams_html = trigrams.to_html(index=False)
             stats_html = stats.to_html(index=False, header=False)
             academic_formulas_html = academic_formulas.to_html(index=False)
+            academic_collocations_html = academic_collocations.to_html(index=False)
             academic_words_html = academic_words.to_html(index=False)
             recurring_lemmas_html = recurring_lemmas.to_html(index=False)
 
@@ -50,11 +51,13 @@ class Connection:
             return jsonify(table_trigrams=trigrams_html,
                            table_stats=stats_html,
                            table_academic_formulas=academic_formulas_html,
+                           table_academic_collocations=academic_collocations_html,
                            table_academic_words=academic_words_html,
                            table_recurring_lemmas=recurring_lemmas_html,
                            level=level,
                            recurring_lemmas=list(recurring_lemmas['Lemma']),
                            len_academic_formulas=len(academic_formulas['Academic formula']),
+                           len_academic_collocations=len(academic_collocations['Academic collocation']),
                            len_academic_words=len(academic_words['Academic word']))
 
         @self._app.route('/get_tokens', methods=['GET'])

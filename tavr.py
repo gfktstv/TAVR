@@ -17,6 +17,8 @@ import orjson
 
 import os
 
+import itertools
+
 nlp = spacy.load('en_core_web_lg')
 nlp.add_pipe('spacy-ngram')  # Pipeline for n-gram marking
 
@@ -150,23 +152,30 @@ class _Text:
                 types.append(token)
                 unique_tokens_text.append(token.text)
         return types
-
-    def get_bigrams(self):
-        """Returns a list of bigrams. Tokens in bigrams divided by __"""
+    
+    def get_n_grams(self):
+        """
+        Returns dict of 2-, 3-, 4-, 5-grams with following structure: key is type of n-gram (e.g. 2-gram), value is the list of such n-grams.
+        Each n-gram is str in which tokens divided by 1 whitespace
+        """
         tokens = self.get_tokens()
-        bigrams = list()
-        for i in range(len(tokens) - 2):
-            bigrams.append(f'{tokens[i]}__{tokens[i + 1]}'.lower())
-            bigrams.append(f'{tokens[i]}__{tokens[i + 2]}'.lower())
-        return bigrams
-
-    def get_trigrams(self):
-        """Returns a list of trigrams. Tokens in trigrams divided by __"""
-        tokens = self.get_tokens()
-        trigrams = list()
-        for i in range(len(tokens) - 2):
-            trigrams.append(f'{tokens[i]}__{tokens[i + 1]}__{tokens[i + 2]}'.lower())
-        return trigrams
+        n_grams = {
+            '2-gram': list(), '3-gram': list(), '4-gram': list(), '5-gram': list()
+        }
+        for i in range(len(tokens) - 4):
+            n_grams['2-gram'].append(f'{tokens[i]} {tokens[i + 1]}'.lower())
+            n_grams['2-gram'].append(f'{tokens[i]} {tokens[i + 2]}'.lower())
+            n_grams['3-gram'].append(f'{tokens[i]} {tokens[i + 1]} {tokens[i + 2]}'.lower())
+            n_grams['4-gram'].append(f'{tokens[i]} {tokens[i + 1]} {tokens[i + 2]} {tokens[i + 3]}'.lower())
+            n_grams['5-gram'].append(f'{tokens[i]} {tokens[i + 1]} {tokens[i + 2]} {tokens[i + 3]} {tokens[i + 4]}'.lower())
+                
+        n_grams['2-gram'].append(f'{tokens[len(tokens) - 3]} {tokens[len(tokens) - 4]}'.lower())
+        n_grams['2-gram'].append(f'{tokens[len(tokens) - 2]} {tokens[len(tokens) - 4]}'.lower())
+        n_grams['2-gram'].append(f'{tokens[len(tokens) - 2]} {tokens[len(tokens) - 3]}'.lower())
+        n_grams['3-gram'].append(f'{tokens[len(tokens) - 2]} {tokens[len(tokens) - 3]} {tokens[len(tokens) - 4]}'.lower())
+        n_grams['4-gram'].append(f'{tokens[len(tokens) - 1]} {tokens[len(tokens) - 2]} {tokens[len(tokens) - 3]} {tokens[len(tokens) - 4]}'.lower())
+        
+        return n_grams
 
 
 class _LexicalSophisticationMeasurements:
@@ -181,9 +190,12 @@ class _LexicalSophisticationMeasurements:
         text (_Text): instance of class _Text
 
     Attributes:
-        marked_up_n_grams (dict of dict): Dictionary with key of an n-gram and value of an n_gram_dict which
-        represents frequency and range of an n-gram
-        vocabulary_by_level_dict (dict): amount of _tokens by CEFR level
+        marked_up_n_grams (dict of dict): Dictionary for n_grams with following structure: 
+        key: n_gram, value: dictionary with freq 
+        (for non-academic 2-,3-grams and for academic formulas), freq_bawe and freq_bnc 
+        (for academic collocations), range (for non-academic 2-, 3-grams), 
+        indicators a_formula and a_collocation and the length of the n-gram
+        vocabulary_by_level_dict (dict): number of _tokens by CEFR level
 
     Methods:
         word_freq_range
@@ -220,8 +232,7 @@ class _LexicalSophisticationMeasurements:
             self._functional_tokens = text.get_tokens(
                 include_punct=False, include_content_words=False, include_functional_words=True
             )
-            self._bigrams = text.get_bigrams()
-            self._trigrams = text.get_trigrams()
+            self._n_grams = text.get_n_grams()
         # For replacement options
         elif token_list is not None:
             assert isinstance(token_list, list)
@@ -255,17 +266,25 @@ class _LexicalSophisticationMeasurements:
                 self._marked_up_tokens[token] = {
                     'punct': True, 'functional_word': False, 'id': self._tokens.index(token)
                 }
-
-        # Dictionary consisting of n-gram and n-gram_dict.
-        # N-gram dict is a dictionary with frequency and range.
-        # Dictionary includes academic formulas marked with frequency and occurrences in a text as well
+        
+        # Dictionary for n_grams with following structure: 
+        # key: n_gram
+        # value: dictionary with freq (for non-academic 2-,3-grams and for academic formulas), 
+        # freq_bawe and freq_bnc (for academic collocations), range (for non-academic 2-, 3-grams), 
+        # indicators a_formula and a_collocation and the length of the n-gram
         self.marked_up_n_grams = dict()
+        for n_gram in itertools.chain.from_iterable(self._n_grams.values()):
+            self.marked_up_n_grams[n_gram] = {
+                'freq': int(), 'freq_bawe': float(), 'freq_bnc': float(), 
+                'range': int(), 'a_formula': False, 'a_collocation': False,
+                'len': len(n_gram.split())
+            }
 
         # Lists consisting of bigrams and trigrams which are unrecognized in corpus. Used for n-gram proportion
         self._unrecognized_bigrams = list()
         self._unrecognized_trigrams = list()
 
-        # Dictionary with keys as CEFR levels (A1, A2, B1, etc.) and appropriate amount of _tokens in a text
+        # Dictionary with keys as CEFR levels (A1, A2, B1, etc.) and appropriate number of _tokens in a text
         self.vocabulary_by_level_dict = dict()
 
         # Path to directory with json files
@@ -407,52 +426,60 @@ class _LexicalSophisticationMeasurements:
 
         Returns: dict containing average frequency and range.
 
-        """
+        """ 
         # Load n-grams frequency and range from corpus
-        with open(os.path.join(self.data_in_json_dir_path, 'brown_bigram_freq_range.json'), 'rb') as f:
-            brown_bigram_freq_range = orjson.loads(f.read())
         with open(os.path.join(self.data_in_json_dir_path, 'brown_trigram_freq_range.json'), 'rb') as f:
             brown_trigram_freq_range = orjson.loads(f.read())
-
+        with open(os.path.join(self.data_in_json_dir_path, 'brown_bigram_freq_range.json'), 'rb') as f:
+            brown_bigram_freq_range = orjson.loads(f.read())
+            
         # Create lists of frequencies and ranges for calculating average values further
         bigram_frequencies, bigram_ranges = list(), list()
         trigram_frequencies, trigram_ranges = list(), list()
-        for bigram in self._bigrams:
-            try:
-                bigram_freq, bigram_range = brown_bigram_freq_range[bigram].values()
+        
+        for bigram in self._n_grams['2-gram']:
+                try:
+                    bigram_freq, bigram_range = brown_bigram_freq_range['__'.join(bigram.split())].values()
 
-                bigram_frequencies.append(bigram_freq)
-                bigram_ranges.append(bigram_range)
+                    bigram_frequencies.append(bigram_freq)
+                    bigram_ranges.append(bigram_range)
 
-                # Add bigram marked with frequency and range to a dict
-                self.marked_up_n_grams[bigram] = {'freq': bigram_freq, 'range': bigram_range, 'academic': False,
-                                                  'len': 2}
-            except KeyError:
-                # Unrecognized bigrams for bigram proportion
-                self._unrecognized_bigrams.append(bigram)
-                continue
-        for trigram in self._trigrams:
+                    # Add bigram marked with frequency and range to a dict
+                    self.marked_up_n_grams[bigram] = {
+                    'freq': bigram_freq, 'freq_bawe': int(), 'freq_bnc': int(), 
+                    'range': bigram_range, 'a_formula': False, 'a_collocation': False,
+                    'len': 2
+                    }
+                except KeyError:
+                    # Unrecognized bigrams for bigram proportion
+                    self._unrecognized_bigrams.append(bigram)
+                    continue
+            
+        for trigram in self._n_grams['3-gram']:
             try:
-                trigram_freq, trigram_range = brown_trigram_freq_range[trigram].values()
+                trigram_freq, trigram_range = brown_trigram_freq_range['__'.join(trigram.split())].values()
 
                 trigram_frequencies.append(trigram_freq)
                 trigram_ranges.append(trigram_range)
 
                 # Add trigram marked with frequency and range to a dict
-                self.marked_up_n_grams[trigram] = {'freq': trigram_freq, 'range': trigram_range, 'academic': False,
-                                                   'len': 3}
+                self.marked_up_n_grams[trigram] = {
+                    'freq': trigram_freq, 'freq_bawe': int(), 'freq_bnc': int(), 
+                    'range': trigram_range, 'a_formula': False, 'a_collocation': False,
+                    'len': 3
+                    }
             except KeyError:
                 # Unrecognized trigrams for trigram proportion
                 self._unrecognized_trigrams.append(trigram)
                 continue
-
+        
         measurements_dict = {
             'Bigram frequency': np.mean(bigram_frequencies),
             'Bigram range': np.mean(bigram_ranges),
             'Trigram frequency': np.mean(trigram_frequencies),
             'Trigram range': np.mean(trigram_ranges)
         }
-
+        
         return measurements_dict
 
     def n_gram_proportion(self):
@@ -467,8 +494,8 @@ class _LexicalSophisticationMeasurements:
             self.n_gram_freq_range()
 
         measurements_dict = {
-            'Bigram proportion': len(self._unrecognized_bigrams) / len(self._bigrams),
-            'Trigram proportion': len(self._unrecognized_trigrams) / len(self._trigrams)
+            'Bigram proportion': len(self._unrecognized_bigrams) / len(self._n_grams['2-gram']),
+            'Trigram proportion': len(self._unrecognized_trigrams) / len(self._n_grams['3-gram'])
         }
 
         return measurements_dict
@@ -493,8 +520,8 @@ class _LexicalSophisticationMeasurements:
             self.n_gram_freq_range()
 
         # Create lists of bigrams and trigrams from an essay which are represented in corpus
-        trigrams = list([trigram for trigram in self._trigrams if trigram in self.marked_up_n_grams.keys()])
-        bigrams = list([bigram for bigram in self._bigrams if bigram in self.marked_up_n_grams.keys()])
+        trigrams = list([trigram for trigram in self._n_grams['3-gram'] if trigram in self.marked_up_n_grams.keys()])
+        bigrams = list([bigram for bigram in self._n_grams['2-gram'] if bigram in self.marked_up_n_grams.keys()])
 
         # Load lists of bigrams and trigrams from a corpus
         with open(os.path.join(self.data_in_json_dir_path, 'brown_bigrams.json'), 'rb') as f:
@@ -514,13 +541,15 @@ class _LexicalSophisticationMeasurements:
 
                 normalized_frequency = n_gram_dict['freq'] / len(brown_bigrams)
                 bigrams_normalized_frequency_corpus.append(normalized_frequency)
-            else:
+            elif n_gram_dict['len'] == 3:
                 normalized_frequency = trigrams.count(n_gram) / len(trigrams)
                 trigrams_normalized_frequency_essay.append(normalized_frequency)
 
                 normalized_frequency = n_gram_dict['freq'] / len(brown_trigrams)
                 trigrams_normalized_frequency_corpus.append(normalized_frequency)
-
+            else:
+                continue
+        
         # Calculate correlation (accuracy)
         bigram_accuracy, bigram_p = stats.pearsonr(
             bigrams_normalized_frequency_corpus, bigrams_normalized_frequency_essay
@@ -541,73 +570,69 @@ class _LexicalSophisticationMeasurements:
 
         return measurements_dict
 
-    def academic_formulas_freq(self):
+    def academic_n_grams(self):
         """
-        Create list with academic formulas and their frequency and amount of occurrences.
-        Calculates average frequency.
-
-        Returns:
-            1) list of academic frequencies marked with frequency,
-            2) dict containing average frequency.
-
+        Marks up n-grams if they are in the Academic Formulas List or in the Academic Collocations Lust. 
+        Returns number of such n-grams in the text
         """
         # Load academic formulas list
         with open(os.path.join(self.data_in_json_dir_path, 'afl.json'), 'rb') as f:
-            academic_formulas_list = orjson.loads(f.read())
+            academic_formulas_list = dict(orjson.loads(f.read()))
+        # Load academic collocations list
+        with open(os.path.join(self.data_in_json_dir_path, 'acl.json'), 'rb') as f:
+            academic_collocations_list = dict(orjson.loads(f.read()))
+            
+        count = 0
+        for n_gram in self.marked_up_n_grams.keys():
+            if n_gram in academic_formulas_list.keys():
+                count += 1
+                self.marked_up_n_grams[n_gram] = {
+                    'freq': int(academic_formulas_list[n_gram]), 'freq_bawe': int(), 'freq_bnc': int(), 
+                    'range': int(), 'a_formula': True, 'a_collocation': False,
+                    'len': len(n_gram.split())
+                    }
+                self.marked_up_n_grams[n_gram]['a_formula'] = True
+            elif n_gram in academic_collocations_list.keys():
+                count += 1
+                self.marked_up_n_grams[n_gram] = {
+                    'freq': int(), 'freq_bawe': float(academic_collocations_list[n_gram][0]), 
+                    'freq_bnc': float(academic_collocations_list[n_gram][1]), 
+                    'range': int(), 'a_formula': False, 'a_collocation': True,
+                    'len': len(n_gram.split())
+                    }
+            else:
+                continue
+            
+        measurements_dict = {
+            'Number of academic words': count
+        }
+            
+        return measurements_dict
 
-        frequencies = 0
-        occurrences = 0
-        for formula in academic_formulas_list:
-            if formula[0] in self._content:
-                frequencies += int(formula[1]) * self._content.count(formula[0])
-                occurrences += self._content.count(formula[0])
+    def academic_vocabulary(self):
+        """
+        Marks up tokens if they are in the New Academic Word List. 
+        Returns number of such tokens in the text
+        """
+        # Load new academic word list in json
+        with open(os.path.join(self.data_in_json_dir_path, 'nawl.json'), 'rb') as f:
+            new_academic_word_list = orjson.loads(f.read())
 
-                self.marked_up_n_grams[formula[0]] = {
-                    'freq': int(formula[1]), 'range': None, 'occur': self._content.count(formula[0]), 'academic': True,
-                    'len': len(formula[0].split(' '))
-                }
+        count = 0
+        for token in self._content_tokens:
+            if token.lex.text in new_academic_word_list:
+                count += 1
+                self._marked_up_tokens[token]['academic'] = True
 
-        if occurrences == 0:
-            measurements_dict = {
-                'Academic formulas frequency': 0
-            }
-        else:
-            measurements_dict = {
-                'Academic formulas frequency': frequencies / occurrences
-            }
+        measurements_dict = {
+            'Number of academic words': count
+        }
 
         return measurements_dict
 
-    def academic_vocabulary_content(self):
-        """
-        Calculates amount of academic words (words from Academic Word List) and the ratio
-        between the number of academic words and the number of _tokens (not counting stopwords).
-
-        Returns: dictionary with amount of academic words and their percentage of the text.
-
-        """
-        # Load academic word list in json
-        with open(os.path.join(self.data_in_json_dir_path, 'awl.json'), 'rb') as f:
-            academic_word_list = orjson.loads(f.read())
-
-        academic_words = list()
-        for token in self._content_tokens:
-            if token.text in academic_word_list:
-                self._marked_up_tokens[token]['academic'] = True
-                academic_words.append(token)
-            else:
-                self._marked_up_tokens[token]['academic'] = False
-
-        statistics_dict = {
-            'Amount of academic words': len(academic_words),
-            'Percentage of academic words': len(academic_words) / len(self._content_tokens)
-        }
-
-        return statistics_dict
-
     def vocabulary_by_level(self, for_replacement_options=False):
         """
-        Marks up tokens with CEFR level (A1, A2, B1, etc.) and calculates amount of tokens by each CEFR level.
+        Marks up tokens with CEFR level (A1, A2, B1, etc.) and calculates number of tokens by each CEFR level.
 
         Returns a dictionary.
 
@@ -682,11 +707,11 @@ class _LexicalSophisticationMeasurements:
             vocabulary_metric.append(self.vocabulary_by_level_dict[f'{level} words'] * level_weight[level])
 
         if not for_replacement_options:
-            vocabulary_metric_dict = {
+            measurements_dict = {
                 'Vocabulary': np.sum(vocabulary_metric)
             }
 
-            return vocabulary_metric_dict
+            return measurements_dict
 
     def get_full_data(self):
         """
@@ -695,16 +720,16 @@ class _LexicalSophisticationMeasurements:
         Returns: dictionary with data from all methods
         """
         word_freq_range_data = self.word_freq_range()
-        word_information = self.word_information()
+        word_information_data = self.word_information()
         n_gram_freq_range_data = self.n_gram_freq_range()
-        n_gram_proportion = self.n_gram_proportion()
-        n_gram_accuracy = self.n_gram_accuracy()
-        academic_vocabulary_data = self.academic_vocabulary_content()
-        academic_formulas_data = self.academic_formulas_freq()
+        n_gram_proportion_data = self.n_gram_proportion()
+        n_gram_accuracy_data = self.n_gram_accuracy()
+        academic_vocabulary_data = self.academic_vocabulary()
+        academic_n_grams_data = self.academic_n_grams()
         vocabulary_by_level_data = self.vocabulary_by_level()
 
-        full_data = (word_freq_range_data | word_information | n_gram_freq_range_data | n_gram_proportion |
-                     n_gram_accuracy | academic_vocabulary_data | academic_formulas_data | vocabulary_by_level_data)
+        full_data = (word_freq_range_data | word_information_data | n_gram_freq_range_data | n_gram_proportion_data |
+                     n_gram_accuracy_data | academic_vocabulary_data | academic_n_grams_data | vocabulary_by_level_data)
 
         return full_data
 
@@ -792,14 +817,14 @@ class TextAnalysis:
         """
         fig, ax = plt.subplots(facecolor=(0.1, 0.2, 0.5, 0))
 
-        # Amount of vocabulary for each level
-        amount_of_vocabulary_by_level = list(self._vocabulary_by_level_dict.values())
+        # Number of vocabulary for each level
+        number_of_vocabulary_by_level = list(self._vocabulary_by_level_dict.values())
         # Levels (labels)
         levels_of_vocabulary = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2']
         colors = ['#FFE89C', '#FFCF32', '#66C4D8',
                   '#5282F2', '#9C99FF', '#6B66FF']
 
-        ax.pie(amount_of_vocabulary_by_level,
+        ax.pie(number_of_vocabulary_by_level,
                labels=levels_of_vocabulary,
                autopct='%1.1f%%',
                colors=colors
@@ -827,16 +852,16 @@ class TextAnalysis:
         """
         fig, ax = plt.subplots(facecolor=(0.1, 0.2, 0.5, 0))
 
-        # Amount of vocabulary for each level
-        amount_of_vocabulary_by_level = list(self._vocabulary_by_level_dict.values())
+        # Number of vocabulary for each level
+        number_of_vocabulary_by_level = list(self._vocabulary_by_level_dict.values())
         # Levels (labels)
         levels_of_vocabulary = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2']
         colors = ['#FFE89C', '#FFCF32', '#66C4D8',
                   '#5282F2', '#9C99FF', '#6B66FF']
 
-        ax.pie(amount_of_vocabulary_by_level,
+        ax.pie(number_of_vocabulary_by_level,
                labels=levels_of_vocabulary,
-               autopct=self.make_autopct(amount_of_vocabulary_by_level),
+               autopct=self.make_autopct(number_of_vocabulary_by_level),
                colors=colors,
                explode=(0.1, 0.1, 0, 0, 0, 0),  # First and second pieces will explode (A1 and A2)
                textprops={'fontsize': 9}
@@ -852,32 +877,28 @@ class TextAnalysis:
 
         Returns a pandas DataFrame
         """
-        sorted_trigrams = sorted(self._marked_up_n_grams.items(), key=lambda x: x[1]['freq'], reverse=True)
+        sorted_n_grams = sorted(self._marked_up_n_grams.items(), key=lambda x: x[1]['freq'], reverse=True)
         # Dictionary that will be converted into CSV table
         trigrams_dict = {
             'Trigram': list(), 'Frequency': list(), 'Range': list()
         }
-        for trigram_tuple in sorted_trigrams:
-            if trigram_tuple[1]['len'] == 3:
-                trigrams_dict['Trigram'].append(trigram_tuple[0].replace('__', ' '))
-                trigrams_dict['Frequency'].append(trigram_tuple[1]['freq'])
-                trigrams_dict['Range'].append(trigram_tuple[1]['range'])
+        for n_gram_tuple in sorted_n_grams:
+            if n_gram_tuple[1]['len'] == 3:
+                trigrams_dict['Trigram'].append(n_gram_tuple[0])
+                trigrams_dict['Frequency'].append(n_gram_tuple[1]['freq'])
+                trigrams_dict['Range'].append(n_gram_tuple[1]['range'])
         trigrams = pd.DataFrame(trigrams_dict)
         trigrams.fillna('-', inplace=True)
         return trigrams
 
     def get_academic_formulas_dataframe(self):
-        """
-        Creates a pandas DataFrame with academic formulas and their frequency from a given text.
-
-        Returns a pandas DataFrame
-        """
+        """Creates a pandas DataFrame with academic formulas. Returns a pandas DataFrame"""
         # Dictionary that will be converted into CSV table
         academic_formulas_dict = {
             'Academic formula': list()
         }
         for n_gram, n_gram_dict in self._marked_up_n_grams.items():
-            if n_gram_dict['academic'] is True:
+            if n_gram_dict['a_formula']:
                 academic_formulas_dict['Academic formula'].append(n_gram)
         academic_formulas = pd.DataFrame(academic_formulas_dict)
 
@@ -885,13 +906,25 @@ class TextAnalysis:
             academic_formulas = pd.DataFrame({'Academic formula': ['Not found']})
 
         return academic_formulas
+    
+    def get_academic_collocations_dataframe(self):
+        """Creates a pandas DataFrame with academic collocations. Returns a pandas DataFrame"""
+        # Dictionary that will be converted into CSV table
+        academic_collocations_dict = {
+            'Academic collocation': list()
+        }
+        for n_gram, n_gram_dict in self._marked_up_n_grams.items():
+            if n_gram_dict['a_collocation']:
+                academic_collocations_dict['Academic collocation'].append(n_gram)
+        academic_collocations = pd.DataFrame(academic_collocations_dict)
+
+        if academic_collocations.empty:
+            academic_collocations = pd.DataFrame({'Academic collocation': ['Not found']})
+
+        return academic_collocations
 
     def get_academic_words_dataframe(self):
-        """
-        Creates a pandas DataFrame with academic words and their frequency from a given text.
-
-        Returns a pandas DataFrame
-        """
+        """Creates a pandas DataFrame with academic words. Returns a pandas DataFrame"""
         academic_words_dict = {
             'Academic word': list()
         }
@@ -916,7 +949,7 @@ class TextAnalysis:
         stats_dict['metric'].append('TTR')
         stats_dict['value'].append(round(self._lexical_diversity_measurements['TTR'], 2))
         stats_dict['metric'].append('Academic words')
-        stats_dict['value'].append(str(self._lexical_sophistication_measurements['Amount of academic words']))
+        stats_dict['value'].append(str(self._lexical_sophistication_measurements['Number of academic words']))
         stats_dict['metric'].append('Average trigram frequency')
         stats_dict['value'].append(round(self._lexical_sophistication_measurements['Trigram frequency'], 2))
         stats = pd.DataFrame(stats_dict)
@@ -976,11 +1009,18 @@ class TextAnalysis:
             trigrams = trigrams.head(trigrams.shape[0])
 
         academic_formulas = self.get_academic_formulas_dataframe()
-        # Leave only first 10 entities or fewer
-        if academic_formulas.shape[0] >= 10:
-            academic_formulas = academic_formulas.head(10)
+        # Leave only first 5 entities or fewer
+        if academic_formulas.shape[0] >= 5:
+            academic_formulas = academic_formulas.head(5)
         else:
             academic_formulas = academic_formulas.head(academic_formulas.shape[0])
+            
+        academic_collocations = self.get_academic_collocations_dataframe()
+        # Leave only first 5 entities or fewer
+        if academic_collocations.shape[0] >= 5:
+            academic_collocations = academic_collocations.head(5)
+        else:
+            academic_collocations = academic_collocations.head(academic_collocations.shape[0])
 
         academic_words = self.get_academic_words_dataframe()
         # Leave only first 6 entities or fewer
@@ -1000,7 +1040,7 @@ class TextAnalysis:
         stats = self.get_stats_dataframe()
         self.get_vocabulary_chart_qck_anltcs()
         self.get_vocabulary_chart_anltcs()
-        return trigrams, stats, academic_formulas, academic_words, recurring_lemmas, level
+        return trigrams, stats, academic_formulas, academic_collocations, academic_words, recurring_lemmas, level
 
     @property
     def lexical_sophistication_measurements(self):

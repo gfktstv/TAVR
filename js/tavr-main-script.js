@@ -102,9 +102,10 @@ async function getMeasurementsFromTAVR(inputEssayArea) {
                                      measurements['table_recurring_lemmas'], measurements['level']);
           // Add charts and tables to analytics
           addMeasurementsToAnltcs(measurements['table_trigrams'], measurements['table_stats'], 
-                                  measurements['table_academic_formulas'], measurements['table_academic_words'], 
-                                  measurements['table_recurring_lemmas'], measurements['level'], 
-                                  measurements['recurring_lemmas'], measurements['len_academic_formulas'], 
+                                  measurements['table_academic_formulas'], measurements['table_academic_collocations'], 
+                                  measurements['table_academic_words'], measurements['table_recurring_lemmas'], 
+                                  measurements['level'], measurements['recurring_lemmas'], 
+                                  measurements['len_academic_formulas'], measurements['len_academic_collocations'],
                                   measurements['len_academic_words']);
           // Animations of appearance
           // Hide horizontal scrollbar for a while
@@ -283,9 +284,9 @@ function addMeasurementsToQckAnltcs(tableTrigrams, tableStats, tableRecurringLem
 }
 
 // Add measurements to analytics
-function addMeasurementsToAnltcs(tableTrigrams, tableStats, tableAcademicFormulas, tableAcademicWords,
-                                 tableRecurringLemmas, level, recurring_lemmas, len_academic_formulas,
-                                 len_academic_words) {
+function addMeasurementsToAnltcs(tableTrigrams, tableStats, tableAcademicFormulas, tableAcademicCollocations, 
+                                 tableAcademicWords, tableRecurringLemmas, level, recurring_lemmas, 
+                                 len_academic_formulas, len_academic_collocations, len_academic_words) {
     const vocabularyChartAnalytics = document.getElementById('vocabularyChartAnalytics');
     vocabularyChartAnalytics.src = 'temporary_files/vocabulary_chart_anltcs.png';
 
@@ -299,9 +300,10 @@ function addMeasurementsToAnltcs(tableTrigrams, tableStats, tableAcademicFormula
     const recurringLemma3 = document.getElementById('recurringLemma3');
     recurringLemma3.innerHTML = recurring_lemmas[2];
 
-    if (len_academic_formulas > 1 || len_academic_words > 1) {
+    if (len_academic_formulas > 1 || len_academic_words > 1 || len_academic_collocations > 1) {
         const academicFormulasTablesContainerAnltcs = document.getElementById('academicFormulasTablesContainerAnltcs');
         academicFormulasTablesContainerAnltcs.innerHTML += tableAcademicFormulas;
+        academicFormulasTablesContainerAnltcs.innerHTML += tableAcademicCollocations;
         academicFormulasTablesContainerAnltcs.innerHTML += tableAcademicWords;
     } else {
         // Delete analytics sub-container with academic formulas
