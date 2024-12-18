@@ -558,14 +558,9 @@ class _LexicalSophisticationMeasurements:
             trigrams_normalized_frequency_corpus, trigrams_normalized_frequency_essay
         )
 
-        if np.isnan(bigram_accuracy):
-            bigram_accuracy = .0
-        if np.isnan(trigram_accuracy):
-            trigram_accuracy = .0
-
         measurements_dict = {
-            'Bigram accuracy': bigram_accuracy,
-            'Trigram accuracy': trigram_accuracy
+            'Bigram accuracy': .0 if np.isnan(bigram_accuracy) else bigram_accuracy,
+            'Trigram accuracy': .0 if np.isnan(trigram_accuracy) else trigram_accuracy
         }
 
         return measurements_dict
@@ -573,7 +568,7 @@ class _LexicalSophisticationMeasurements:
     def academic_n_grams(self):
         """
         Marks up n-grams if they are in the Academic Formulas List or in the Academic Collocations Lust. 
-        Returns number of such n-grams in the text
+        Returns number of such n-grams in the text and academic collocations frequencies
         """
         # Load academic formulas list
         with open(os.path.join(self.data_in_json_dir_path, 'afl.json'), 'rb') as f:
@@ -581,6 +576,9 @@ class _LexicalSophisticationMeasurements:
         # Load academic collocations list
         with open(os.path.join(self.data_in_json_dir_path, 'acl.json'), 'rb') as f:
             academic_collocations_list = dict(orjson.loads(f.read()))
+            
+        # Create lists to calculate mean frequency (BNC and BAWE) for collocations 
+        collocations_frequencies_bnc, collocations_frequencies_bawe = list(), list()
             
         count = 0
         for n_gram in self.marked_up_n_grams.keys():
@@ -594,9 +592,16 @@ class _LexicalSophisticationMeasurements:
                 self.marked_up_n_grams[n_gram]['a_formula'] = True
             elif n_gram in academic_collocations_list.keys():
                 count += 1
+                
+                freq_bawe = float(academic_collocations_list[n_gram][0])
+                freq_bnc = float(academic_collocations_list[n_gram][1])
+                
+                collocations_frequencies_bawe.append(freq_bawe)
+                collocations_frequencies_bnc.append(freq_bnc)
+                
                 self.marked_up_n_grams[n_gram] = {
-                    'freq': int(), 'freq_bawe': float(academic_collocations_list[n_gram][0]), 
-                    'freq_bnc': float(academic_collocations_list[n_gram][1]), 
+                    'freq': int(), 'freq_bawe': freq_bawe, 
+                    'freq_bnc': freq_bnc, 
                     'range': int(), 'a_formula': False, 'a_collocation': True,
                     'len': len(n_gram.split())
                     }
@@ -604,7 +609,9 @@ class _LexicalSophisticationMeasurements:
                 continue
             
         measurements_dict = {
-            'Number of academic words': count
+            'Number of academic n-grams': count, 
+            'Academic collocations frequency BAWE': np.mean(collocations_frequencies_bawe) if len(collocations_frequencies_bawe) > 0 else .0,
+            'Academic collocations frequency BNC': np.mean(collocations_frequencies_bnc) if len(collocations_frequencies_bnc) > 0 else .0,
         }
             
         return measurements_dict
@@ -612,7 +619,7 @@ class _LexicalSophisticationMeasurements:
     def academic_vocabulary(self):
         """
         Marks up tokens if they are in the New Academic Word List. 
-        Returns number of such tokens in the text
+        Returns number and percentage of such tokens in the text
         """
         # Load new academic word list in json
         with open(os.path.join(self.data_in_json_dir_path, 'nawl.json'), 'rb') as f:
@@ -625,7 +632,8 @@ class _LexicalSophisticationMeasurements:
                 self._marked_up_tokens[token]['academic'] = True
 
         measurements_dict = {
-            'Number of academic words': count
+            'Number of academic words': count, 
+            'Percentage of academic words': count / len(self._content_tokens)
         }
 
         return measurements_dict
