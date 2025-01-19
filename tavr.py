@@ -267,18 +267,19 @@ class _LexicalSophisticationMeasurements:
                     'punct': True, 'functional_word': False, 'id': self._tokens.index(token)
                 }
         
-        # Dictionary for n_grams with following structure: 
-        # key: n_gram
-        # value: dictionary with freq (for non-academic 2-,3-grams and for academic formulas), 
-        # freq_bawe and freq_bnc (for academic collocations), range (for non-academic 2-, 3-grams), 
-        # indicators a_formula and a_collocation and the length of the n-gram
-        self.marked_up_n_grams = dict()
-        for n_gram in itertools.chain.from_iterable(self._n_grams.values()):
-            self.marked_up_n_grams[n_gram] = {
-                'freq': int(), 'freq_bawe': float(), 'freq_bnc': float(), 
-                'range': int(), 'a_formula': False, 'a_collocation': False,
-                'len': len(n_gram.split())
-            }
+        if text is not None:
+            # Dictionary for n_grams with following structure: 
+            # key: n_gram
+            # value: dictionary with freq (for non-academic 2-,3-grams and for academic formulas), 
+            # freq_bawe and freq_bnc (for academic collocations), range (for non-academic 2-, 3-grams), 
+            # indicators a_formula and a_collocation and the length of the n-gram
+            self.marked_up_n_grams = dict()
+            for n_gram in itertools.chain.from_iterable(self._n_grams.values()):
+                self.marked_up_n_grams[n_gram] = {
+                    'freq': int(), 'freq_bawe': float(), 'freq_bnc': float(), 
+                    'range': int(), 'a_formula': False, 'a_collocation': False,
+                    'len': len(n_gram.split())
+                }
 
         # Lists consisting of bigrams and trigrams which are unrecognized in corpus. Used for n-gram proportion
         self._unrecognized_bigrams = list()
