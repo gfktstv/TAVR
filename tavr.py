@@ -9,6 +9,7 @@ from lexical_diversity import lex_div as ld
 import pandas as pd
 import numpy as np
 
+import matplotlib
 import matplotlib.pyplot as plt
 
 from scipy import stats
@@ -22,6 +23,8 @@ import itertools
 nlp = spacy.load('en_core_web_lg')
 nlp.add_pipe('spacy-ngram')  # Pipeline for n-gram marking
 
+# For the m-series macbooks
+matplotlib.use('Agg')
 
 class _Text:
     """
@@ -837,8 +840,8 @@ class TextAnalysis:
                labels=levels_of_vocabulary,
                autopct='%1.1f%%',
                colors=colors
-               )
-        plt.savefig('temporary_files/vocabulary_chart_qck_anltcs.png',
+               ) 
+        plt.savefig('tmp/vocabulary_chart_qck_anltcs.png',
                     bbox_inches='tight',
                     pad_inches=0,
                     dpi=500.0)
@@ -875,7 +878,7 @@ class TextAnalysis:
                explode=(0.1, 0.1, 0, 0, 0, 0),  # First and second pieces will explode (A1 and A2)
                textprops={'fontsize': 9}
                )
-        plt.savefig('temporary_files/vocabulary_chart_anltcs.png',
+        plt.savefig('tmp/vocabulary_chart_anltcs.png',
                     bbox_inches='tight',
                     pad_inches=0,
                     dpi=500.0)

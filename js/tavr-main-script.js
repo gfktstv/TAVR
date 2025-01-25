@@ -261,7 +261,7 @@ function tokenCLassFromLevel(level) {
 // Add measurments to quick analytics
 function addMeasurementsToQckAnltcs(tableTrigrams, tableStats, tableRecurringLemmas, level) {
     const vocabularyChartContainerQckAnltcs = document.getElementById('vocabularyChartContainerQckAnltcs');
-    vocabularyChartContainerQckAnltcs.innerHTML = `<img class='vocabulary-chart-quick-analytics' src='temporary_files/vocabulary_chart_qck_anltcs.png'>`;
+    vocabularyChartContainerQckAnltcs.innerHTML = `<img class='vocabulary-chart-quick-analytics' src='tmp/vocabulary_chart_qck_anltcs.png'>`;
     console.log(vocabularyChartContainerQckAnltcs.innerHTML);
 
     const recurringWordsContainerQckAnltcs = document.getElementById('recurringWordsContainerQckAnltcs');
@@ -288,7 +288,7 @@ function addMeasurementsToAnltcs(tableTrigrams, tableStats, tableAcademicFormula
                                  tableAcademicWords, tableRecurringLemmas, level, recurring_lemmas, 
                                  len_academic_formulas, len_academic_collocations, len_academic_words) {
     const vocabularyChartAnalytics = document.getElementById('vocabularyChartAnalytics');
-    vocabularyChartAnalytics.src = 'temporary_files/vocabulary_chart_anltcs.png';
+    vocabularyChartAnalytics.src = 'tmp/vocabulary_chart_anltcs.png';
 
     const recurringLemmasTableContainerAnltcs = document.getElementById('recurringLemmasTableContainerAnltcs');
     recurringLemmasTableContainerAnltcs.innerHTML = tableRecurringLemmas;

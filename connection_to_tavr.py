@@ -45,7 +45,7 @@ class Connection:
             tokens_for_json = dict()
             for key, value in tavr_text_analysis.marked_up_tokens.items():
                 tokens_for_json[f'{key.text}'] = value
-            with open('temporary_files/tokens.json', 'w') as f:
+            with open('tmp/tokens.json', 'w') as f:
                 json.dump(tokens_for_json, f, indent=2, sort_keys=False)
 
             return jsonify(table_trigrams=trigrams_html,
@@ -62,7 +62,7 @@ class Connection:
 
         @self._app.route('/get_tokens', methods=['GET'])
         def get_tokens():
-            with open('temporary_files/tokens.json', 'r') as f:
+            with open('tmp/tokens.json', 'r') as f:
                 tokens = orjson.loads(f.read())
             return jsonify(tokens, self.tokens_text)
 

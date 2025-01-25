@@ -6,6 +6,12 @@ First off, clone the repository and import tavr
 ```
 from tavr import *
 ```
+Then open your terminal and write
+```
+make
+```
+to install all required packages, load spacy model, load nltk wordnet, and create /tmp dir to store temporary files.
+
 Now you will be able to analyze text by TextAnalysis class and get replacement options to spaCy token by TokenReplacementOptions class, let's consider them in order
 ### Text analysis
 Initialize your text in str format, it's better to limit your text under 2500 characters (350 words)
