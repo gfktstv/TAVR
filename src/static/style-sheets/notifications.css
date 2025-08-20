@@ -27,40 +27,35 @@
     font-family: 'TTNormsProMedium';
     font-size: 13px;
     color: #FFFFFF;
-
     list-style-type: none;
     text-align: right;
-
     animation: slideIn 0.45s ease forwards;
+    padding: 0;
+    margin: 0;
+}
 
-    span {
-        width: auto;
-        height: 15px;
+.notifications-list li span {
+    width: auto;
+    height: 15px;
+    padding: 6px;
+    border-radius: 10px;
+    display: inline-block;
+}
 
-        padding: 6px;
-        border-radius: 10px;
-    };
-    span.email {
-        background-color: #2670FF;
-    };
-    span.characters {
-        background-color: #2670FF;
-    };
-    span.tokens {
-        background-color: #000000;
-    };
-    span.connection {
-        background-color: #000000;
-    };
-    span.essayCopy {
-        background-color: #2670FF;
-    }
-    span.essayCopyError {
-        background-color: #000000;
-    }
-
-    padding: 0px;
-    margin: 0px;
+.notifications-list li span.notEnoughWords {
+    background-color: #2670FF;
+}
+.notifications-list li span.tokensNotRecognized {
+    background-color: #000000;
+}
+.notifications-list li span.noConnectionWithServer {
+    background-color: #000000;
+}
+.notifications-list li span.essayCopied {
+    background-color: #2670FF;
+}
+.notifications-list li span.essayNotCopied {
+    background-color: #000000;
 }
 @keyframes slideIn {
     0% {

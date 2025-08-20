@@ -3,50 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="style_sheets/main_page/common_style.css" rel="stylesheet" type="text/css"/>
-    <link href="style_sheets/main_page/instruments.css" rel="stylesheet" type="text/css"/>
-    <link href="style_sheets/main_page/navigation.css" rel="stylesheet" type="text/css"/>
-    <link href="style_sheets/main_page/essay_area.css" rel="stylesheet" type="text/css"/>
-    <link href="style_sheets/main_page/replacements.css"  rel="stylesheet" type="text/css"/>
-    <link href="style_sheets/main_page/quick_analytics.css"  rel="stylesheet" type="text/css"/>
-    <link href="style_sheets/main_page/analytics.css" rel="stylesheet" type="text/css"/>
-    <link href="style_sheets/main_page/notifications.css"  rel="stylesheet" type="text/css"/>
+    <link href="style-sheets/common_style.css" rel="stylesheet" type="text/css"/>
+    <link href="style-sheets/instruments.css" rel="stylesheet" type="text/css"/>
+    <link href="style-sheets/essay_area.css" rel="stylesheet" type="text/css"/>
+    <link href="style-sheets/replacements.css"  rel="stylesheet" type="text/css"/>
+    <link href="style-sheets/quick_analytics.css"  rel="stylesheet" type="text/css"/>
+    <link href="style-sheets/analytics.css" rel="stylesheet" type="text/css"/>
+    <link href="style-sheets/notifications.css"  rel="stylesheet" type="text/css"/>
     <title>Essay analyser | TAVR</title>
     <link rel="icon" href="images/favicon.ico" type="image/x-icon"/>
 </head>
 <body>
-    <nav class="navigation">
-        <ul class="nav-start-list">
-            <li>
-                <button class="btn-logo">
-                    <img class="logo-min" src="images/logo-min.svg">
-                    TAVR
-                </button>
-            </li>
-            <li>
-                <a href="#"><span class="nav-item">Application</span></a>
-            </li>
-            <li>
-                <a href="#"><span class="nav-item">Learn more</span></a>
-            </li>
-            <li>
-                <a href="#"><span class="nav-item">Help</span></a>
-            </li>
-        </ul>
-        <ul class="nav-end-list">
-            <li>
-                <a href="https://github.com/gfktstv/TAVR" target="_blank" rel="noopener noreferrer" class="link-repository">
-                    <span class="nav-item" id="repositoryItem">GitHub repository</span><img class="link-icon" src="images/link-icon-gray.svg">
-                </a>
-            </li>
-            <li>
-                <button class="btn-contacts" id="btnContacts" onclick="getContacts()">
-                    Contacts
-                    <img class="copy-icon" src="images/copy-icon-gray.svg">
-                </button>
-            </li>
-        </ul>
-    </nav>
     <div class="main-container">
         <nav class="instruments" id="instrumentsContainer">
             <ul class="instruments-title-list">
@@ -63,16 +30,12 @@
                             type="checkbox"
                             id="levelButtonA1"
                             name="A1"
-                            onclick="changeLevelHighlighting('levelButtonA1','level0', 'rgb(255, 232, 156)',
-                                                             'rgba(255, 232, 156, 0.4)')"
                             checked />
                     <label for="levelButtonA1">A1</label>
                     <input
                             type="checkbox"
-                            id="levelButtonA2"
+                            id="levelButtonA2"xw
                             name="A2"
-                            onclick="changeLevelHighlighting('levelButtonA2', 'level1', 'rgb(255, 207, 50)',
-                                                             'rgba(255, 207, 50, 0.45)')"
                             checked />
                     <label for="levelButtonA2">A2</label>
                 </li>
@@ -81,16 +44,12 @@
                             type="checkbox"
                             id="levelButtonB1"
                             name="B1"
-                            onclick="changeLevelHighlighting('levelButtonB1', 'level2', 'rgb(102, 196, 216)',
-                                                             'rgb(102, 196, 216, 0.4)')"
                             checked />
                     <label for="levelButtonB1">B1</label>
                     <input
                             type="checkbox"
                             id="levelButtonB2"
                             name="B2"
-                            onclick="changeLevelHighlighting('levelButtonB2', 'level3', 'rgb(82, 130, 242)',
-                                                             'rgba(82, 130, 242, 0.45)')"
                             checked />
                     <label for="levelButtonB2">B2</label>
                 </li>
@@ -99,23 +58,18 @@
                             type="checkbox"
                             id="levelButtonC1"
                             name="C1"
-                            onclick="changeLevelHighlighting('levelButtonC1', 'level4', 'rgb(156, 153, 255)',
-                                                             'rgba(156, 153, 255, 0.4)')"
                             checked />
                     <label for="levelButtonC1">C1</label>
                     <input
                             type="checkbox"
                             id="levelButtonC2"
                             name="C2"
-                            onclick="changeLevelHighlighting('levelButtonC2', 'level5', 'rgb(107, 102, 255)',
-                                                             'rgba(107, 102, 255, 0.45)')"
                             checked />
                     <label for="levelButtonC2">C2</label>
                 </li>
                 <li>
                     <button class="instruments-check-uncheck-button"
-                            id="checkUncheckButtonInstruments"
-                            onclick="checkUncheck()">Uncheck all</button>
+                            id="checkUncheckButtonInstruments">Uncheck all</button>
                 </li>
             </ul>
             <div class="instruments-empty-space"></div>
@@ -125,15 +79,14 @@
                 <h1>Analyse essay with TAVR</h1>
                 <textarea class="input-essay-area"
                         id="inputEssayArea"
-                        placeholder="Write here (1500-2000 characters)"  
-                        minlength="1500" maxlength="2000" 
+                        placeholder="Write here (250-300 words)"
                         autofocus></textarea>
                 <div class="buttons-essay-container">
-                    <button class="btn-analyse" id="buttonAnalyse" onclick="createToastAndTremble('buttonAnalyse')">
+                    <button class="btn-analyse" id="buttonAnalyse">
                         Analyse
                     </button>
-                    <button class="btn-characters" id="buttonCharacters" onclick="createToastAndTremble('buttonCharacters')">
-                        0 Characters
+                    <button class="btn-characters" id="buttonWords"">
+                        No words yet...
                     </button>
                 </div>
             </div>
@@ -141,10 +94,10 @@
                 <h1>Tool for Analysis of Vocabulary Richness</h1> 
                 <div id="markedUpEssayArea" class="marked-up-essay-area"></div>
                 <div class="buttons-marked-up-essay-container">
-                    <button class="btn-copy" id="buttonCopy" onclick="copyEssay()">
+                    <button class="btn-copy" id="buttonCopy">
                         Copy
                     </button>
-                    <button class="btn-start-over" id="buttonStartOver" onclick="startOver()">
+                    <button class="btn-start-over" id="buttonStartOver">
                         Start over
                     </button>
                 </div>
@@ -226,11 +179,6 @@
                     </div>
                     <div id="trigramsTableContainerAnltcs"></div>
                 </div>
-                <div id="statsContainerAnltcs" class="sub-container-analytics">
-
-                </div>
-                <h1>What influences the assessment?</h1>
-                <hr color="#BCBCBC" size="1px">
             </div>
         </main>
         <nav class="quick-analytics" id="quickAnalytics">
@@ -284,8 +232,8 @@
         </nav>
         <ul class="notifications-list" id="notificationsList"></ul>
     </div>
-    <script src="js/tavr-main-script.js"></script>
-    <script src="js/jquery-3.7.1.min.js"></script>
-    <script src="js/tavr-main-jquery-script.js"></script>
+    <script src="js/main.js" type="module"></script>
+    <script src="js/toasts.js" type="module"></script>
+    <script src="js/word_counter.js" type="module"></script>
 </body>
 </html>

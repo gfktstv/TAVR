@@ -11,7 +11,7 @@ body {
 .main-container {
     display: flex;
 
-    height: 100vh;
+    height: calc(100vh - 31px);
 }
 main {
     padding-top: 88px;
